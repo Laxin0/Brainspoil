@@ -36,6 +36,11 @@ def parseA(lex):
 def parseB(lex):
     return lex.exp('b')
 
+def parseABCorABE(lex):
+    parseA(lex)
+    parseB(lex)
+    c = 
+
 def parseC(lex):
     return parseA(lex) or parseB(lex)
 
@@ -71,3 +76,35 @@ def main():
     print(iparseM(l))
 
 main()
+
+
+
+
+
+
+
+
+def parse_decl():
+    _, id = exp(let, id)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
