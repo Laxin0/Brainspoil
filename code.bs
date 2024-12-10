@@ -1,2 +1,2 @@
-let    a         =    7   ;
-        let   b;
+let   a=21*2;
+let   b=4;

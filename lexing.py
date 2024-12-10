@@ -1,0 +1,141 @@
+from definitions import *
+
+class Lexer():
+    def __init__(self, src, path):
+        self.src = src
+        self.path = path
+        self.index = 0
+        self.line = 1
+        self.col = 1
+        self.buffer = self.next()
+
+    def loc(self) -> str:
+        return f"{self.path}:{self.line}:{self.col}"
+
+    def next(self) -> Token:
+        c: str
+        while True:
+            if self.index >= len(self.src): return Token(TokenType.EOF, None, self.loc())
+            c = self.src[self.index]
+
+            if c == '\n':
+                self.index += 1
+                self.col = 1
+                self.line +=1
+
+            elif c.isspace():
+                self.index += 1
+                self.col += 1
+
+            elif c.isalpha():
+                loc = self.loc()
+                buff = ""
+                while c.isalnum():
+                    buff += c
+                    self.index += 1
+                    self.col += 1
+                    if self.index >= len(self.src): return Token(TokenType.EOF, None, self.loc())
+                    c = self.src[self.index]
+                if buff in keywords.keys():
+                    return Token(keywords[buff], None, loc)
+                else:
+                    return Token(TokenType.IDENT, buff, loc)
+                
+            elif c.isnumeric():
+                loc = self.loc()
+                buff = ""
+                while c.isnumeric():
+                    buff += c
+                    self.index += 1
+                    self.col += 1
+                    if self.index >= len(self.src): return Token(TokenType.EOF, None, self.loc())
+                    c = self.src[self.index]
+                return Token(TokenType.INTLIT, buff, loc)
+            
+            elif c in puncts.keys():
+                loc = self.loc()
+                self.index += 1
+                self.col += 1
+                return Token(puncts[c], None, loc)
+            
+            elif c in str_to_binop.keys():
+                loc = self.loc()
+                self.index += 1
+                self.col += 1
+                return Token(TokenType.BINOP, str_to_binop[c], loc)
+            
+            else:
+                error(f"{self.loc()}: ERROR: Invalid character `{c}`")
+
+    def next_is(self, ttype: TokenType) -> bool:
+        return self.buffer.type == ttype
+    
+    def peek(self) -> Token:
+        return self.buffer
+
+    def expect(self, ttype: TokenType) -> Token:
+        if self.buffer.type == ttype:
+            t = self.buffer
+            self.buffer = self.next()
+            return t
+        else:
+            error(f"{self.loc()}: ERROR: Expected `{ttype}` but found `{self.buffer}`")
+
+def parse_term(lex: Lexer) -> Expr:
+    if lex.next_is(TokenType.INTLIT):
+        return NTerm(int(lex.expect(TokenType.INTLIT).val))
+    elif lex.next_is(TokenType.IDENT):
+        return NTerm(lex.expect(TokenType.IDENT))
+    elif lex.next_is(TokenType.PAREN_OP):
+        lex.expect(TokenType.PAREN_OP)
+        exp = parse_expr(lex, 1)
+        lex.expect(TokenType.PAREN_CL)
+        return exp
+    else:
+        error("Invalid term")
+
+
+def parse_expr(lex: Lexer, min_prec) -> Expr:
+    lhs = parse_term(lex)
+    
+    while True:
+        if not lex.next_is(TokenType.BINOP) or binop_prec[lex.peek().val] < min_prec:
+            break
+        op = lex.expect(TokenType.BINOP).val
+        prec = binop_prec[op]
+        next_min_prec = prec + 1
+
+        rhs = parse_expr(lex, next_min_prec)
+
+        lhs = NBinExpr(lhs, rhs, op)
+
+    return lhs
+
+
+def parse_declare(lex: Lexer) -> NDeclare:
+    _ = lex.expect(TokenType.KW_LET)
+    id = lex.expect(TokenType.IDENT)
+    if lex.next_is(TokenType.ASSIGN):
+        _ = lex.expect(TokenType.ASSIGN)
+        exp = parse_expr(lex, 1)
+        _ = lex.expect(TokenType.SEMI)
+        return NDeclare(id, exp)
+    elif lex.next_is(TokenType.SEMI):
+        _ = lex.expect(TokenType.SEMI)
+        return NDeclare(id, NTerm(0))
+    error(f"{lex.next_is().loc}: ERROR: Expected `=` or `;` but found `{lex.next_is()}`")
+
+
+def parse_statement(lex: Lexer) -> Statement:
+    if lex.next_is(TokenType.KW_LET):
+        return parse_declare(lex)
+    elif lex.next_is(TokenType.IDENT):
+        raise NotImplementedError()
+    else:
+        error("Invalid statement")
+
+def parse_prog(lex: Lexer) -> NProg:
+    stmts = []
+    while not lex.next_is(TokenType.EOF):
+        stmts.append(parse_statement(lex))
+    return NProg(stmts)

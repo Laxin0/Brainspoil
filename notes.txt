@@ -1,3 +1,15 @@
 # Grammar
 
-AST 
+NProg     ::= [Statement]
+Statement ::= Declare
+
+Expr      ::= Term 
+            | BinExpr
+
+Term      ::= id
+            | int
+            | (Expr)
+
+BinExpr   ::= Expr BinOp Expr
+
+NDeclare  ::= let id {= Expr} ;
