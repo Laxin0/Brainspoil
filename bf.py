@@ -1,3 +1,4 @@
+import sys
 class Intepr():
     
     head: int
@@ -54,7 +55,15 @@ class Intepr():
         print([n for n in self.mem])
 
 if __name__ == "__main__":
-    code = ">[-]+++++++++++++++++++++>[-]++>[-]>[-]<<<[->>+<<]>[->[-<<+>>>+<]>[-<+>]<<]<<<[-]>>[-<<+>>]>[-]++++<[-]>[-<+>]"
+    args = sys.argv
+    if len(args) < 2:
+        print("Usage: python bf.py <file.bf>")
+        exit(0)
+    _, file = args
+    code = ""
+    with open(file) as f:
+        code = f.read()
     inter = Intepr(code, 16)
     inter.run()
     inter.dumpmem()
+    print("\nProgram executed")

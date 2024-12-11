@@ -58,7 +58,7 @@ def gen_binop(op: BinOpKind):
         case BinOpKind.SUB:
             res = f"{to(sp-1)}[-<->]"
         case BinOpKind.MULT:
-            res = f"{to(sp)}[-]>[-]<<<[->>+<<]>[->[-<<+>>>+<]>[-<+>]<<]"
+            res = f"{to(sp+1)}[-]<[-]<[-<[->>+<<]>>[>+<<<+>>]>[-<+>]<<]"
         case BinOpKind.DIV:
             raise NotImplementedError()
     return res
@@ -67,11 +67,12 @@ def gen_binop(op: BinOpKind):
 def gen_bin_expr(node: NBinExpr):
     global sp
     assert isinstance(node, NBinExpr)
-    return \
+    res = \
     gen_expr(node.lhs) +\
     gen_expr(node.rhs) +\
     gen_binop(node.op)
     sp -= 1
+    return res
 
 def gen_expr(node: Expr):
     if isinstance(node, NTerm):

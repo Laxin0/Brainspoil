@@ -6,7 +6,9 @@ def main():
     with open("code.bs") as f:
         src = f.read()
     l = Lexer(src, "code.bs")
-    print(gen_prog(parse_prog(l)))
+    with open("out.bf", "w") as f:
+        f.write(gen_prog(parse_prog(l)))
+    print("Code generated")
 
 if __name__ == "__main__":
     main()

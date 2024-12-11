@@ -13,3 +13,5 @@ Term      ::= id
 BinExpr   ::= Expr BinOp Expr
 
 NDeclare  ::= let id {= Expr} ;
+
+<[-<[->>+<<]>>[>+<<<+>>]>[-<+>]<<]
