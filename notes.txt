@@ -14,4 +14,8 @@ BinExpr   ::= Expr BinOp Expr
 
 NDeclare  ::= let id {= Expr} ;
 
-<[-<[->>+<<]>>[>+<<<+>>]>[-<+>]<<]
+MULTIPLICATION = >>[-]>[-]<<<[->>+<<]>[->[-<<+>>>+<]>[-<+>]<<]<
+
+IDEAS
+
+python??? Library for command line arguments

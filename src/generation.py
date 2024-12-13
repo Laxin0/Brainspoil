@@ -50,6 +50,7 @@ def gen_term(node: NTerm):
         error("Unreacheable")
 
 def gen_binop(op: BinOpKind):
+    global head
     res = ""
     # a b ^
     match op:
@@ -58,7 +59,7 @@ def gen_binop(op: BinOpKind):
         case BinOpKind.SUB:
             res = f"{to(sp-1)}[-<->]"
         case BinOpKind.MULT:
-            res = f"{to(sp+1)}[-]<[-]<[-<[->>+<<]>>[>+<<<+>>]>[-<+>]<<]"
+            res = f"{to(sp-2)}>>[-]>[-]<<<[->>+<<]>[->[-<<+>>>+<]>[-<+>]<<]<"
         case BinOpKind.DIV:
             raise NotImplementedError()
     return res
