@@ -13,6 +13,8 @@ def iota():
 
 class TokenType(Enum):
     KW_LET = iota()
+    KW_PRINT = iota()
+    KW_READ = iota()
 
     IDENT = iota()
     INTLIT = iota()
@@ -48,7 +50,9 @@ binop_prec = {
 }
 
 keywords = {
-    "let": TokenType.KW_LET
+    "let": TokenType.KW_LET,
+    "print": TokenType.KW_PRINT,
+    "read": TokenType.KW_READ
 }
 
 puncts = {
@@ -94,6 +98,19 @@ class Statement(): pass
 class NDeclare(Statement):
     id: Token
     val: Expr
+
+@dataclass
+class NAssign(Statement):
+    id: Token
+    val: Expr
+
+@dataclass
+class NPrint(Statement):
+    expr: Expr
+
+@dataclass
+class NRead(Statement):
+    id: Token
 
 @dataclass
 class NProg():

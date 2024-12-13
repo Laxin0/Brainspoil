@@ -125,12 +125,34 @@ def parse_declare(lex: Lexer) -> NDeclare:
         return NDeclare(id, NTerm(0))
     error(f"{lex.next_is().loc}: ERROR: Expected `=` or `;` but found `{lex.next_is()}`")
 
+def parse_assign(lex: Lexer) -> NAssign:
+    vid = lex.expect(TokenType.IDENT)
+    _ = lex.expect(TokenType.ASSIGN)
+    exp = parse_expr(lex, 1)
+    _ = lex.expect(TokenType.SEMI)
+    return NAssign(vid, exp)
+
+def parse_read(lex: Lexer) -> NRead:
+    _ = lex.expect(TokenType.KW_READ)
+    id = lex.expect(TokenType.IDENT)
+    _ = lex.expect(TokenType.SEMI)
+    return NRead(id)
+
+def parse_print(lex: Lexer) -> NPrint:
+    _ = lex.expect(TokenType.KW_PRINT)
+    exp = parse_expr(lex, 1)
+    _ = lex.expect(TokenType.SEMI)
+    return NPrint(exp)
 
 def parse_statement(lex: Lexer) -> Statement:
     if lex.next_is(TokenType.KW_LET):
         return parse_declare(lex)
     elif lex.next_is(TokenType.IDENT):
-        raise NotImplementedError()
+        return parse_assign(lex)
+    elif lex.next_is(TokenType.KW_PRINT):
+        return parse_print(lex)
+    elif lex.next_is(TokenType.KW_READ):
+        return parse_read(lex)
     else:
         error("Invalid statement")
 

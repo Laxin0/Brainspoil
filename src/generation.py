@@ -5,33 +5,37 @@ sp = 0
 bfvars = {}
 bf_code = ""
 
+# TODO: make comments and formating optional
+
 def to(addr):
     global head, sp
     steps = addr-head
     head = addr
+    res = ''
     if steps < 0:
         steps *= -1
-        return '<'*steps
+        res = '<'*steps
     else:
-        return '>'*steps
+        res = '>'*steps
+    return f" t{res} "
 
 def store(addr: int):
     global sp
     res = f"{to(addr)}[-]{to(sp-1)}[-{to(addr)}+{to(sp-1)}]"
     sp -= 1
-    return res
+    return f"store({addr}): {res}\n"
 
 def top(addr: int):
     global sp
-    res = f"{to(addr)}[-{to(sp)}+>+{to(addr)}]{to(sp+1)}[-{to(addr)}+{to(sp+1)}]"
+    res = f"{to(addr)}[-{to(sp)}+{to(sp+1)}+{to(addr)}]{to(sp+1)}[-{to(addr)}+{to(sp+1)}]"
     sp += 1
-    return res
+    return f"top({addr}): {res}\n"
 
 def pushint(n: int):
     global sp
     res = to(sp) + '[-]' + '+'*n
     sp += 1
-    return res
+    return f"pushint({n}): {res}\n"
 
 #def addto(src, dst):
 #    return f"{to(src)}[-{to(dst)}+{to(src)}]"
@@ -55,11 +59,11 @@ def gen_binop(op: BinOpKind):
     # a b ^
     match op:
         case BinOpKind.ADD:
-            res = f"{to(sp-1)}[-<+>]"
+            res = f"add: {to(sp-1)}[-<+>]\n"
         case BinOpKind.SUB:
-            res = f"{to(sp-1)}[-<->]"
+            res = f"sub: {to(sp-1)}[-<->]\n"
         case BinOpKind.MULT:
-            res = f"{to(sp-2)}>>[-]>[-]<<<[->>+<<]>[->[-<<+>>>+<]>[-<+>]<<]<"
+            res = f"mult: {to(sp-2)}>>[-]>[-]<<<[->>+<<]>[->[-<<+>>>+<]>[-<+>]<<]<\n"
         case BinOpKind.DIV:
             raise NotImplementedError()
     return res
@@ -94,11 +98,43 @@ def gen_declare(node: NDeclare):
     sp += 1
     return gen_expr(exp) + store(addr)
 
+def gen_assign(node: NAssign):
+    assert isinstance(node, NAssign)
+    id = node.id
+    if not(id.val in bfvars.keys()):
+        error(f"{id.loc}: ERROR: Variable `{id.val}` not declared.")
+    
+    return gen_expr(node.val) + store(bfvars[id.val])
+
+def gen_print(node: NPrint):
+    global sp
+    assert isinstance(node, NPrint)
+    res = gen_expr(node.expr)+to(sp-1)+"."
+    sp -= 1
+    return res
+
+def gen_read(node: NPrint):
+    global sp
+    assert isinstance(node, NRead)
+    id = node.id
+    if not(id.val in bfvars.keys()):
+        error(f"{id.loc}: ERROR: Variable `{id.val}` not declared.")
+    res = to(sp)+','
+    sp += 1 
+    res += store(bfvars[id.val])
+    return res
+
 def gen_statement(node: Statement):
     if isinstance(node, NDeclare):
         return gen_declare(node)
+    elif isinstance(node, NAssign):
+        return gen_assign(node)
+    elif isinstance(node, NPrint):
+        return gen_print(node)
+    elif isinstance(node, NRead):
+        return gen_read(node)
     else:
-        error("Unreacheable")
+        raise AssertionError("Unreacheable statement")
 
 def gen_prog(node: NProg):
     assert isinstance(node, NProg)

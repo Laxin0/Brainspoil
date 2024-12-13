@@ -1,7 +1,10 @@
 # Grammar
 
 NProg     ::= [Statement]
-Statement ::= Declare
+Statement ::= NDeclare
+            | NAssign
+            | NRead
+            | NPrint
 
 Expr      ::= Term 
             | BinExpr
@@ -13,9 +16,18 @@ Term      ::= id
 BinExpr   ::= Expr BinOp Expr
 
 NDeclare  ::= let id {= Expr} ;
+NAssign   ::= id = Expr ;
+NPrint    ::= print Expr ;
+NRead     ::= read id ;
+
+
+
+# Macros
 
 MULTIPLICATION = >>[-]>[-]<<<[->>+<<]>[->[-<<+>>>+<]>[-<+>]<<]<
 
-IDEAS
+
+
+# Ideas
 
 python??? Library for command line arguments

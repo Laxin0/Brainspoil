@@ -2,7 +2,7 @@ from sys import argv
 
 TAPE_W = 5
 CODE_W = 20
-
+FILL_C = ' '
 class Intepr():
     
     head: int
@@ -28,7 +28,7 @@ class Intepr():
             elif self.code[pc] == ',':
                 self.mem[self.head] = ord(input())
             elif self.code[pc] == '.':
-                print(self.mem[self.head])
+                print(chr(self.mem[self.head]))
             elif self.code[pc] == '>':
                 self.head += 1
             elif self.code[pc] == '<':
@@ -53,14 +53,14 @@ class Intepr():
                         if self.code[pc] == ']':
                             stack += 1
             else:
-                pass
+                pass #TODO: maybe skip(continue)
             
             pc += 1
 
-            if self.visual:
-                print(' '.join((('_'*3) if i >= self.memcap or i < 0 else str(self.mem[i]).rjust(3, '0')) for i in range(self.head-TAPE_W, self.head+TAPE_W)))
+            if self.visual: #TODO: rewrite this 
+                print(' '.join(((FILL_C*3) if i >= self.memcap or i < 0 else str(self.mem[i]).rjust(3, '0')) for i in range(self.head-TAPE_W, self.head+TAPE_W)))
                 print(' '*(4*TAPE_W) + ' ^')
-                print(''.join('_' if i >= len(self.code) or i < 0 or not(self.code[i] in '+-<>[].,') else self.code[i] for i in range(pc-CODE_W, pc+CODE_W)))
+                print(''.join(FILL_C if i >= len(self.code) or i < 0 or self.code[i].isspace() else self.code[i] for i in range(pc-CODE_W, pc+CODE_W)))
                 print(' '*CODE_W + '^')
                 print()
                 input()
