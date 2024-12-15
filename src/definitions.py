@@ -15,6 +15,8 @@ class TokenType(Enum):
     KW_LET = iota()
     KW_PRINT = iota()
     KW_READ = iota()
+    KW_IF = iota()
+    KW_ELSE = iota()
 
     IDENT = iota()
     INTLIT = iota()
@@ -24,6 +26,8 @@ class TokenType(Enum):
     BINOP = iota()
     PAREN_OP = iota()
     PAREN_CL = iota()
+    CURL_OP = iota()
+    CURL_CL = iota()
     SEMI = iota()
 
     EOF = iota()
@@ -52,14 +56,40 @@ binop_prec = {
 keywords = {
     "let": TokenType.KW_LET,
     "print": TokenType.KW_PRINT,
-    "read": TokenType.KW_READ
+    "read": TokenType.KW_READ,
+    "if": TokenType.KW_IF,
+    "else": TokenType.KW_ELSE
 }
 
 puncts = {
     ";": TokenType.SEMI,
     "=": TokenType.ASSIGN,
     "(": TokenType.PAREN_OP,
-    ")": TokenType.PAREN_CL
+    ")": TokenType.PAREN_CL,
+    "}": TokenType.CURL_CL,
+    "{": TokenType.CURL_OP
+}
+
+tok_to_str = {
+    TokenType.KW_LET: '`let` keyword',
+    TokenType.KW_PRINT: '`print` keyword',
+    TokenType.KW_READ: '`read` keyword',
+    TokenType.KW_IF: '`if` keyword',
+    TokenType.KW_ELSE: '`else` keyword',
+
+    TokenType.IDENT: 'identifier',
+    TokenType.INTLIT: 'integer literal',
+
+    TokenType.ASSIGN: '`=`',
+
+    TokenType.BINOP: '`+`, `-`, `*` or `/`',
+    TokenType.PAREN_OP: '`(`',
+    TokenType.PAREN_CL: '`)`',
+    TokenType.CURL_OP: '`{`',
+    TokenType.CURL_CL: '`}`',
+    TokenType.SEMI: '`;`',
+
+    TokenType.EOF: 'end of file',
 }
 
 @dataclass
@@ -95,6 +125,10 @@ class NBinExpr(Expr):
 class Statement(): pass
 
 @dataclass
+class NScope(Statement):
+    stmts: list[Statement]
+
+@dataclass
 class NDeclare(Statement):
     id: Token
     val: Expr
@@ -111,6 +145,12 @@ class NPrint(Statement):
 @dataclass
 class NRead(Statement):
     id: Token
+
+@dataclass
+class NIfElse(Statement):
+    cond: Expr
+    then: NScope
+    elze: NScope
 
 @dataclass
 class NProg():

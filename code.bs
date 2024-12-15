@@ -1,6 +1,9 @@
 let a = (2+5)*8;
 let b;
 let c;
-print a;
-read b;
-print b;
+
+if 0{
+    print(69);
+}else{
+    print(66);
+}

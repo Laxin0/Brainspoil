@@ -79,7 +79,7 @@ class Lexer():
             self.buffer = self.next()
             return t
         else:
-            error(f"{self.loc()}: ERROR: Expected `{ttype}` but found `{self.buffer}`")
+            error(f"{self.loc()}: ERROR: Expected {tok_to_str[ttype]} but found {tok_to_str[self.buffer.type]}")
 
 def parse_term(lex: Lexer) -> Expr:
     if lex.next_is(TokenType.INTLIT):
@@ -92,7 +92,8 @@ def parse_term(lex: Lexer) -> Expr:
         lex.expect(TokenType.PAREN_CL)
         return exp
     else:
-        error("Invalid term")
+        error(f"{lex.peek().loc}: ERROR: Expected {tok_to_str[TokenType.INTLIT]}, {tok_to_str[TokenType.IDENT]} or {tok_to_str[TokenType.PAREN_OP]} " +\
+              f" but found {tok_to_str[lex.peek().type]}")
 
 
 def parse_expr(lex: Lexer, min_prec) -> Expr:
@@ -123,7 +124,7 @@ def parse_declare(lex: Lexer) -> NDeclare:
     elif lex.next_is(TokenType.SEMI):
         _ = lex.expect(TokenType.SEMI)
         return NDeclare(id, NTerm(0))
-    error(f"{lex.next_is().loc}: ERROR: Expected `=` or `;` but found `{lex.next_is()}`")
+    error(f"{lex.peek().loc}: ERROR: Expected {tok_to_str[TokenType.ASSIGN]} or {tok_to_str[TokenType.SEMI]} but found {tok_to_str[lex.peek().type]}")
 
 def parse_assign(lex: Lexer) -> NAssign:
     vid = lex.expect(TokenType.IDENT)
@@ -144,6 +145,16 @@ def parse_print(lex: Lexer) -> NPrint:
     _ = lex.expect(TokenType.SEMI)
     return NPrint(exp)
 
+def parse_ifelse(lex: Lexer) -> NIfElse:
+    _ = lex.expect(TokenType.KW_IF)
+    cond = parse_expr(lex, 1)
+    then_sc = parse_scope(lex)
+    if lex.next_is(TokenType.KW_ELSE):
+        lex.expect(TokenType.KW_ELSE)
+        else_sc = parse_scope(lex)
+        return NIfElse(cond, then_sc, else_sc)
+    return NIfElse(cond, then_sc, None)
+
 def parse_statement(lex: Lexer) -> Statement:
     if lex.next_is(TokenType.KW_LET):
         return parse_declare(lex)
@@ -153,8 +164,24 @@ def parse_statement(lex: Lexer) -> Statement:
         return parse_print(lex)
     elif lex.next_is(TokenType.KW_READ):
         return parse_read(lex)
+    elif lex.next_is(TokenType.CURL_OP):
+        return parse_scope(lex)
+    elif lex.next_is(TokenType.KW_IF):
+        return parse_ifelse(lex)
     else:
-        error("Invalid statement")
+        error(f"{lex.peek().loc}: ERROR: Expected {tok_to_str[TokenType.KW_LET]} " +\
+                                                   tok_to_str[TokenType.IDENT] + ", " +\
+                                                   tok_to_str[TokenType.KW_PRINT] + ", "+\
+                                                   tok_to_str[TokenType.KW_READ] + " or " +\
+                                                   tok_to_str[TokenType.CURL_OP] + f" but found {tok_to_str[lex.peek().type]}")
+
+def parse_scope(lex: Lexer) -> NScope:
+    lex.expect(TokenType.CURL_OP)
+    stmts = []
+    while not lex.next_is(TokenType.CURL_CL):
+        stmts.append(parse_statement(lex))
+    lex.expect(TokenType.CURL_CL)
+    return NScope(stmts)
 
 def parse_prog(lex: Lexer) -> NProg:
     stmts = []

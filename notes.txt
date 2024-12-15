@@ -5,6 +5,10 @@ Statement ::= NDeclare
             | NAssign
             | NRead
             | NPrint
+            | NScope
+            | NIfElse
+
+NScope    ::= `{` [Statement] `}`
 
 Expr      ::= Term 
             | BinExpr
@@ -15,11 +19,12 @@ Term      ::= id
 
 BinExpr   ::= Expr BinOp Expr
 
-NDeclare  ::= let id {= Expr} ;
-NAssign   ::= id = Expr ;
-NPrint    ::= print Expr ;
-NRead     ::= read id ;
+NIfElse       ::= `if` Expr NScope {`else` NScope}
 
+NDeclare  ::= `let` id {`=` Expr} `;`
+NAssign   ::= id = Expr `;`
+NPrint    ::= `print` Expr `;`
+NRead     ::= `read` id `;`
 
 
 # Macros
@@ -31,3 +36,34 @@ MULTIPLICATION = >>[-]>[-]<<<[->>+<<]>[->[-<<+>>>+<]>[-<+>]<<]<
 # Ideas
 
 python??? Library for command line arguments
+
+# IF-ELSE
+
+to(flag)[-]+   (OPTIONAL)   устанавливаем флаг 1 для случая else
+to(cond) 
+[
+    gen_scope(then)
+
+    to(flag)[-]   (OPTIONAL)
+    to(cond) устанавливаем флаг 0 для случая else
+    [-] выход из цикла
+]
+(below is OPTIONAL)
+to(flag)
+[
+    to(cond)
+
+    gen_scope(elze)
+
+    to(flag)[-] выход из цикла
+]
+
+# IF
+
+to(cond) 
+[
+    gen_scope(then)
+
+    to(cond) устанавливаем флаг 0 для случая else
+    [-] выход из цикла
+]

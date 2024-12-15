@@ -27,7 +27,7 @@ def store(addr: int):
 
 def top(addr: int):
     global sp
-    res = f"{to(addr)}[-{to(sp)}+{to(sp+1)}+{to(addr)}]{to(sp+1)}[-{to(addr)}+{to(sp+1)}]"
+    res = f"{to(sp)}[-]{to(addr)}[-{to(sp)}+{to(sp+1)}+{to(addr)}]{to(sp+1)}[-{to(addr)}+{to(sp+1)}]"
     sp += 1
     return f"top({addr}): {res}\n"
 
@@ -124,6 +124,37 @@ def gen_read(node: NPrint):
     res += store(bfvars[id.val])
     return res
 
+def gen_scope(node: NScope):
+    assert isinstance(node, NScope)
+    global sp, bfvars
+    res = ''
+    vars_c = len(bfvars)
+    sp_ = sp
+    for s in node.stmts:
+        res += gen_statement(s)
+    
+    for _ in range(len(bfvars)-vars_c):
+        bfvars.popitem()
+    sp = sp_
+    return res
+
+def gen_ifelse(node: NIfElse): #TODO rewite normal way!!!
+    assert isinstance(node, NIfElse)
+    res = ''
+    global sp
+    res += gen_expr(node.cond)
+    cond = sp-1
+    flag = sp
+    sp += 1
+    if node.elze != None: res += f"{to(flag)}[-]+"
+    res += f"{to(cond)}[{gen_scope(node.then)}"
+    if node.elze != None: res += f"{to(flag)}[-]"
+    res += f"{to(cond)}[-]]"
+    if node.elze != None:
+        res += f"{to(flag)}[{gen_scope(node.elze)}{to(flag)}[-]]"
+    sp -= 2
+    return res
+
 def gen_statement(node: Statement):
     if isinstance(node, NDeclare):
         return gen_declare(node)
@@ -133,6 +164,10 @@ def gen_statement(node: Statement):
         return gen_print(node)
     elif isinstance(node, NRead):
         return gen_read(node)
+    elif isinstance(node, NScope):
+        return gen_scope(node)
+    elif isinstance(node, NIfElse):
+        return gen_ifelse(node)
     else:
         raise AssertionError("Unreacheable statement")
 
