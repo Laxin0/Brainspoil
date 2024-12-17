@@ -1,0 +1,1 @@
+src/tests/test2.bs:1:9: ERROR: Expected integer literal, identifier or `(`  but found `;`

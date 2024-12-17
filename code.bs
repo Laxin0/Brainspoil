@@ -1,9 +1,12 @@
-let a = (2+5)*8;
-let b;
-let c;
-
-if 0{
-    print(69);
-}else{
-    print(66);
+let a = 5;
+while (a)
+{
+    a = a-1;
+    
+    let b = 2;
+    if a-b{
+        print(69);
+    }else{
+        print(70);
+    }
 }

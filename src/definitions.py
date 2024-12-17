@@ -17,6 +17,7 @@ class TokenType(Enum):
     KW_READ = iota()
     KW_IF = iota()
     KW_ELSE = iota()
+    KW_WHILE = iota()
 
     IDENT = iota()
     INTLIT = iota()
@@ -58,7 +59,8 @@ keywords = {
     "print": TokenType.KW_PRINT,
     "read": TokenType.KW_READ,
     "if": TokenType.KW_IF,
-    "else": TokenType.KW_ELSE
+    "else": TokenType.KW_ELSE,
+    "while": TokenType.KW_WHILE
 }
 
 puncts = {
@@ -76,6 +78,7 @@ tok_to_str = {
     TokenType.KW_READ: '`read` keyword',
     TokenType.KW_IF: '`if` keyword',
     TokenType.KW_ELSE: '`else` keyword',
+    TokenType.KW_WHILE: '`while` keyword',
 
     TokenType.IDENT: 'identifier',
     TokenType.INTLIT: 'integer literal',
@@ -152,6 +155,11 @@ class NIfElse(Statement):
     then: NScope
     elze: NScope
 
+@dataclass
+class NWhile(Statement):
+    cond: Expr
+    body: NScope
+    
 @dataclass
 class NProg():
     stmts: list[Statement]

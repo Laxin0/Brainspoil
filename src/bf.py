@@ -28,7 +28,7 @@ class Intepr():
             elif self.code[pc] == ',':
                 self.mem[self.head] = ord(input())
             elif self.code[pc] == '.':
-                print(chr(self.mem[self.head]))
+                print(chr(self.mem[self.head]), end='')
             elif self.code[pc] == '>':
                 self.head += 1
             elif self.code[pc] == '<':
@@ -66,7 +66,7 @@ class Intepr():
                 input()
 
     def dumpmem(self):
-        print([n for n in self.mem])
+        print(' '.join(str(n) for n in self.mem))
 
 if __name__ == "__main__":
     if len(argv) < 4:

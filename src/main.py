@@ -13,7 +13,7 @@ def main():
     print("Generating bf code...")
     l = Lexer(src, "code.bs")
     with open(out_file, "w") as f:
-        f.write(gen_prog(parse_prog(l)))
+        f.write(gen_prog(parse_prog(l), False))
     print("Code generated successfully.")
 
 if __name__ == "__main__":

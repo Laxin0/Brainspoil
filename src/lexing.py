@@ -155,6 +155,12 @@ def parse_ifelse(lex: Lexer) -> NIfElse:
         return NIfElse(cond, then_sc, else_sc)
     return NIfElse(cond, then_sc, None)
 
+def parse_while(lex: Lexer):
+    _ = lex.expect(TokenType.KW_WHILE)
+    cond = parse_expr(lex, 1)
+    body = parse_scope(lex)
+    return NWhile(cond, body)
+
 def parse_statement(lex: Lexer) -> Statement:
     if lex.next_is(TokenType.KW_LET):
         return parse_declare(lex)
@@ -168,10 +174,14 @@ def parse_statement(lex: Lexer) -> Statement:
         return parse_scope(lex)
     elif lex.next_is(TokenType.KW_IF):
         return parse_ifelse(lex)
+    elif lex.next_is(TokenType.KW_WHILE):
+        return parse_while(lex)
     else:
+        # TODO: rewitre
         error(f"{lex.peek().loc}: ERROR: Expected {tok_to_str[TokenType.KW_LET]} " +\
                                                    tok_to_str[TokenType.IDENT] + ", " +\
                                                    tok_to_str[TokenType.KW_PRINT] + ", "+\
+                                                   tok_to_str[TokenType.KW_WHILE] + ", "+\
                                                    tok_to_str[TokenType.KW_READ] + " or " +\
                                                    tok_to_str[TokenType.CURL_OP] + f" but found {tok_to_str[lex.peek().type]}")
 

@@ -37,33 +37,25 @@ MULTIPLICATION = >>[-]>[-]<<<[->>+<<]>[->[-<<+>>>+<]>[-<+>]<<]<
 
 python??? Library for command line arguments
 
-# IF-ELSE
+# while
 
-to(flag)[-]+   (OPTIONAL)   устанавливаем флаг 1 для случая else
-to(cond) 
-[
-    gen_scope(then)
+gen_cond to(cond)[  *body*  gen_cond store(cond) to(cond)]
 
-    to(flag)[-]   (OPTIONAL)
-    to(cond) устанавливаем флаг 0 для случая else
-    [-] выход из цикла
-]
-(below is OPTIONAL)
-to(flag)
-[
-    to(cond)
+let arr = 0;
+const arr_len = 5;
 
-    gen_scope(elze)
+let i = arr_len;
+while i {
+    @(arr+i) = i;
 
-    to(flag)[-] выход из цикла
-]
+    i = i - 1;
+}
 
-# IF
+i = arr_len;
+while i {
+    print(&i)
+}
 
-to(cond) 
-[
-    gen_scope(then)
+42 @  ->  value of heap[42] 
 
-    to(cond) устанавливаем флаг 0 для случая else
-    [-] выход из цикла
-]
+42 69 !   -> store 69 at heap[42] 

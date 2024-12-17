@@ -17,25 +17,25 @@ def to(addr):
         res = '<'*steps
     else:
         res = '>'*steps
-    return f" t{res} "
+    return '' if steps == 0 else ' '+res+' '
 
 def store(addr: int):
     global sp
-    res = f"{to(addr)}[-]{to(sp-1)}[-{to(addr)}+{to(sp-1)}]"
+    res = f"{to(addr)}[-]{to(sp-1)}[-{to(addr)}+{to(sp-1)}]\n"
     sp -= 1
-    return f"store({addr}): {res}\n"
+    return res
 
 def top(addr: int):
     global sp
-    res = f"{to(sp)}[-]{to(addr)}[-{to(sp)}+{to(sp+1)}+{to(addr)}]{to(sp+1)}[-{to(addr)}+{to(sp+1)}]"
+    res = f"{to(sp)}[-]{to(addr)}[-{to(sp)}+{to(sp+1)}+{to(addr)}]{to(sp+1)}[-{to(addr)}+{to(sp+1)}]\n"
     sp += 1
-    return f"top({addr}): {res}\n"
+    return res
 
 def pushint(n: int):
     global sp
     res = to(sp) + '[-]' + '+'*n
     sp += 1
-    return f"pushint({n}): {res}\n"
+    return res+'\n'
 
 #def addto(src, dst):
 #    return f"{to(src)}[-{to(dst)}+{to(src)}]"
@@ -59,14 +59,14 @@ def gen_binop(op: BinOpKind):
     # a b ^
     match op:
         case BinOpKind.ADD:
-            res = f"add: {to(sp-1)}[-<+>]\n"
+            res = f"{to(sp-1)}[-<+>]"
         case BinOpKind.SUB:
-            res = f"sub: {to(sp-1)}[-<->]\n"
+            res = f"{to(sp-1)}[-<->]"
         case BinOpKind.MULT:
-            res = f"mult: {to(sp-2)}>>[-]>[-]<<<[->>+<<]>[->[-<<+>>>+<]>[-<+>]<<]<\n"
+            res = f"{to(sp-2)}>>[-]>[-]<<<[->>+<<]>[->[-<<+>>>+<]>[-<+>]<<]<"
         case BinOpKind.DIV:
             raise NotImplementedError()
-    return res
+    return res+'\n'
         
 
 def gen_bin_expr(node: NBinExpr):
@@ -111,7 +111,7 @@ def gen_print(node: NPrint):
     assert isinstance(node, NPrint)
     res = gen_expr(node.expr)+to(sp-1)+"."
     sp -= 1
-    return res
+    return res+'\n'
 
 def gen_read(node: NPrint):
     global sp
@@ -122,7 +122,7 @@ def gen_read(node: NPrint):
     res = to(sp)+','
     sp += 1 
     res += store(bfvars[id.val])
-    return res
+    return res+'\n'
 
 def gen_scope(node: NScope):
     assert isinstance(node, NScope)
@@ -130,8 +130,8 @@ def gen_scope(node: NScope):
     res = ''
     vars_c = len(bfvars)
     sp_ = sp
-    for s in node.stmts:
-        res += gen_statement(s)
+
+    res += '\n'.join(map(gen_statement, node.stmts))
     
     for _ in range(len(bfvars)-vars_c):
         bfvars.popitem()
@@ -146,13 +146,22 @@ def gen_ifelse(node: NIfElse): #TODO rewite normal way!!!
     cond = sp-1
     flag = sp
     sp += 1
-    if node.elze != None: res += f"{to(flag)}[-]+"
-    res += f"{to(cond)}[{gen_scope(node.then)}"
-    if node.elze != None: res += f"{to(flag)}[-]"
-    res += f"{to(cond)}[-]]"
+    if node.elze != None: res += f"{to(flag)}[-]+\n"
+    res += f"{to(cond)}[{gen_scope(node.then)}\n"
+    if node.elze != None: res += f"{to(flag)}[-]\n"
+    res += f"{to(cond)}[-]]\n"
     if node.elze != None:
-        res += f"{to(flag)}[{gen_scope(node.elze)}{to(flag)}[-]]"
+        res += f"{to(flag)}[{gen_scope(node.elze)}{to(flag)}[-]]\n"
     sp -= 2
+    return res
+
+def gen_while(node: NWhile):
+    assert isinstance(node, NWhile)
+    global sp
+    cond_addr = sp
+    res = gen_expr(node.cond)
+    res += f"{to(cond_addr)}[\n{gen_scope(node.body)}\n{gen_expr(node.cond)}{store(cond_addr)}{to(cond_addr)}]"
+    sp -= 1
     return res
 
 def gen_statement(node: Statement):
@@ -168,9 +177,15 @@ def gen_statement(node: Statement):
         return gen_scope(node)
     elif isinstance(node, NIfElse):
         return gen_ifelse(node)
+    elif isinstance(node, NWhile):
+        return gen_while(node)
     else:
         raise AssertionError("Unreacheable statement")
 
-def gen_prog(node: NProg):
+def gen_prog(node: NProg, formatting=False):
     assert isinstance(node, NProg)
-    return "".join(gen_statement(s) for s in node.stmts)
+    code = "\n".join(gen_statement(s) for s in node.stmts)
+    if formatting:
+        return code
+    
+    return ''.join(filter(lambda x: x in '+-<>[],.', code))
