@@ -1,7 +1,8 @@
 from definitions import *
 
 head = 0
-sp = 0
+sp = 30
+hp = 29
 bfvars = {}
 bf_code = ""
 
@@ -17,7 +18,7 @@ def to(addr):
         res = '<'*steps
     else:
         res = '>'*steps
-    return '' if steps == 0 else ' '+res+' '
+    return res
 
 def store(addr: int):
     global sp
@@ -40,6 +41,29 @@ def pushint(n: int):
 #def addto(src, dst):
 #    return f"{to(src)}[-{to(dst)}+{to(src)}]"
 
+def gen_deref(node: NDeref):
+    assert isinstance(node, NDeref)
+    global sp, hp, head
+    p = sp
+    res = gen_expr(node.expr)
+    res += f"{to(p)}>[-]>[-]<<" # zero 2 cells after p, the head at p
+    res += f"[-{to(p+1)}+{to(hp-2)}+{to(p)}]" # copy p to p+1 and hp-2 (first counter cell in heap), the head at p
+    res += to(hp-2)
+    res += "[[-<<+>>]+<<-]+" # while counter > 0 move it one cell left, set curent pos to 1, decrement
+    res += ">[" # while cell with addres `counter` > 0
+    res += "-<"
+    res += "[->>]" # follow tail of ones, after this the head at hp
+    head = hp
+    res += to(p)+'+'+to(p+1) # inc p, the head at p+1
+    res += f"[-{to(p+2)}+{to(hp-2)}+{to(p+1)}]"  # copy p+1 to p+2 and hp-2 (first counter cell in heap), the head at p+1
+    res += f"{to(p+2)}[-<+>]" # move p+2 to p+1, the head at p+2
+    res += to(hp-2)
+    res += "[[-<<+>>]+<<-]+" # while counter > 0 move it one cell left, set curent pos to 1, decrement
+    res += ">]" # the head at cell with addres `counter`
+    res += "<[->>]" # follow tail of ones, after this the head at hp
+    head = hp
+    return res
+
 def gen_term(node: NTerm):
     assert isinstance(node, NTerm)
     val = node.val
@@ -50,6 +74,8 @@ def gen_term(node: NTerm):
         return top(bfvars[val.val])
     elif isinstance(val, int):
         return pushint(val)
+    elif isinstance(val, NDeref):
+        return gen_deref(val)
     else:
         error("Unreacheable")
 
@@ -184,7 +210,9 @@ def gen_statement(node: Statement):
 
 def gen_prog(node: NProg, formatting=False):
     assert isinstance(node, NProg)
-    code = "\n".join(gen_statement(s) for s in node.stmts)
+    global hp
+    prepare_tape = f"{to(hp)}<+<<++<<+++>>>>>"
+    code = prepare_tape + "\n".join(gen_statement(s) for s in node.stmts)
     if formatting:
         return code
     

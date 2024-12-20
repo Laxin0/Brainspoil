@@ -1,12 +1,1 @@
-let a = 5;
-while (a)
-{
-    a = a-1;
-    
-    let b = 2;
-    if a-b{
-        print(69);
-    }else{
-        print(70);
-    }
-}
+let a = &2;

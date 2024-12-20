@@ -91,6 +91,10 @@ def parse_term(lex: Lexer) -> Expr:
         exp = parse_expr(lex, 1)
         lex.expect(TokenType.PAREN_CL)
         return exp
+    elif lex.next_is(TokenType.AND):
+        lex.expect(TokenType.AND)
+        exp = parse_expr(lex, 1)
+        return NTerm(NDeref(exp))
     else:
         error(f"{lex.peek().loc}: ERROR: Expected {tok_to_str[TokenType.INTLIT]}, {tok_to_str[TokenType.IDENT]} or {tok_to_str[TokenType.PAREN_OP]} " +\
               f" but found {tok_to_str[lex.peek().type]}")
