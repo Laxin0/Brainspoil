@@ -1,5 +1,0 @@
-let a = 4;
-let b = 5;
-print(a*b+b*7);
-print(a);
-print(10);
