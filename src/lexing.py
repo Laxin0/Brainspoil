@@ -94,7 +94,7 @@ def parse_term(lex: Lexer) -> Expr:
     elif lex.next_is(TokenType.AND):
         lex.expect(TokenType.AND)
         exp = parse_expr(lex, 1)
-        return NTerm(NDeref(exp))
+        return NTerm(NLoad(exp))
     else:
         error(f"{lex.peek().loc}: ERROR: Expected {tok_to_str[TokenType.INTLIT]}, {tok_to_str[TokenType.IDENT]} or {tok_to_str[TokenType.PAREN_OP]} " +\
               f" but found {tok_to_str[lex.peek().type]}")
@@ -165,6 +165,14 @@ def parse_while(lex: Lexer):
     body = parse_scope(lex)
     return NWhile(cond, body)
 
+def parse_store(lex: Lexer) -> Statement:
+    lex.expect(TokenType.AND)
+    addr = parse_expr(lex, 1)
+    lex.expect(TokenType.ASSIGN)
+    val = parse_expr(lex, 1)
+    lex.expect(TokenType.SEMI)
+    return NStore(addr, val)
+
 def parse_statement(lex: Lexer) -> Statement:
     if lex.next_is(TokenType.KW_LET):
         return parse_declare(lex)
@@ -180,6 +188,8 @@ def parse_statement(lex: Lexer) -> Statement:
         return parse_ifelse(lex)
     elif lex.next_is(TokenType.KW_WHILE):
         return parse_while(lex)
+    elif lex.next_is(TokenType.AND):
+        return parse_store(lex)
     else:
         # TODO: rewitre
         error(f"{lex.peek().loc}: ERROR: Expected {tok_to_str[TokenType.KW_LET]} " +\

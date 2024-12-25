@@ -118,12 +118,12 @@ class Token():
 class Expr(): pass
 
 @dataclass
-class NDeref():
-    expr: Expr
+class NLoad():
+    addr: Expr
 
 @dataclass
 class NTerm(Expr):
-    val: Token|int|NDeref
+    val: Token|int|NLoad
 
 @dataclass
 class NBinExpr(Expr):
@@ -133,6 +133,11 @@ class NBinExpr(Expr):
 
 @dataclass
 class Statement(): pass
+
+@dataclass
+class NStore(Statement):
+    addr: Expr
+    val: Expr
 
 @dataclass
 class NScope(Statement):

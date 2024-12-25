@@ -1,8 +1,8 @@
 from definitions import *
-
+#_A_A0...N
 head = 0
-sp = 30
-hp = 29
+sp = 5
+hp = 4
 bfvars = {}
 bf_code = ""
 
@@ -41,17 +41,17 @@ def pushint(n: int):
 #def addto(src, dst):
 #    return f"{to(src)}[-{to(dst)}+{to(src)}]"
 
-def gen_deref(node: NDeref):
-    assert isinstance(node, NDeref)
+def gen_load(node: NLoad):
+    assert isinstance(node, NLoad)
     global sp, hp, head
     p = sp
-    res = gen_expr(node.expr)
+    res = gen_expr(node.addr)
     res += f"{to(p)}>[-]>[-]<<" # zero 2 cells after p, the head at p
     res += f"[-{to(p+1)}+{to(hp-2)}+{to(p)}]" # copy p to p+1 and hp-2 (first counter cell in heap), the head at p
     res += to(hp-2)
     res += "[[-<<+>>]+<<-]+" # while counter > 0 move it one cell left, set curent pos to 1, decrement
     res += ">[" # while cell with addres `counter` > 0
-    res += "-<"
+    res += "-<<<+>>"
     res += "[->>]" # follow tail of ones, after this the head at hp
     head = hp
     res += to(p)+'+'+to(p+1) # inc p, the head at p+1
@@ -59,7 +59,7 @@ def gen_deref(node: NDeref):
     res += f"{to(p+2)}[-<+>]" # move p+2 to p+1, the head at p+2
     res += to(hp-2)
     res += "[[-<<+>>]+<<-]+" # while counter > 0 move it one cell left, set curent pos to 1, decrement
-    res += ">]" # the head at cell with addres `counter`
+    res += ">]<<<[->>>+<<<]>>>" # the head at cell with addres `counter`
     res += "<[->>]" # follow tail of ones, after this the head at hp
     head = hp
     return res
@@ -74,8 +74,8 @@ def gen_term(node: NTerm):
         return top(bfvars[val.val])
     elif isinstance(val, int):
         return pushint(val)
-    elif isinstance(val, NDeref):
-        return gen_deref(val)
+    elif isinstance(val, NLoad):
+        return gen_load(val)
     else:
         error("Unreacheable")
 
@@ -190,6 +190,35 @@ def gen_while(node: NWhile):
     sp -= 1
     return res
 
+def gen_store(node):
+    assert isinstance(node, NStore)
+    global sp, hp, head
+    res = ""
+    addr = sp
+    res += gen_expr(node.addr)
+    val = sp
+    res += gen_expr(node.val)
+    res += f"{to(addr)}>>[-]<<[-{to(hp-2)}+{to(addr+2)}+{to(addr)}]"
+    res += f">>[-<<+>>]<<"
+    res += to(hp-2)
+    res += "[[-<<+>>]+<<-]+" # while counter > 0 move it one cell left, set curent pos to 1, decrement
+    res += ">[-]<"
+    res += "[->>]"
+    head = hp
+    res += to(val)
+    res += "[-" #while value is not zero
+    res += f"{to(addr)}[-{to(hp-2)}+{to(addr+2)}+{to(addr)}]"
+    res += f">>[-<<+>>]<<"
+    res += to(hp-2)
+    res += "[[-<<+>>]+<<-]+" # while counter > 0 move it one cell left, set curent pos to 1, decrement
+    res += ">+<"
+    res += "[->>]"
+    head = hp
+    res += to(val)
+    res += "]"
+    sp -= 2
+    return res
+
 def gen_statement(node: Statement):
     if isinstance(node, NDeclare):
         return gen_declare(node)
@@ -205,14 +234,16 @@ def gen_statement(node: Statement):
         return gen_ifelse(node)
     elif isinstance(node, NWhile):
         return gen_while(node)
+    elif isinstance(node, NStore):
+        return gen_store(node)
     else:
         raise AssertionError("Unreacheable statement")
 
 def gen_prog(node: NProg, formatting=False):
     assert isinstance(node, NProg)
     global hp
-    prepare_tape = f"{to(hp)}<+<<++<<+++>>>>>"
-    code = prepare_tape + "\n".join(gen_statement(s) for s in node.stmts)
+    #prepare_tape = f"{to(hp)}<+<<++<<+++>>>>>"
+    code = "\n".join(gen_statement(s) for s in node.stmts)
     if formatting:
         return code
     

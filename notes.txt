@@ -7,6 +7,8 @@ Statement ::= NDeclare
             | NPrint
             | NScope
             | NIfElse
+            | NWhile
+            | NStore
 
 NScope    ::= `{` [Statement] `}`
 
@@ -16,17 +18,21 @@ Expr      ::= Term
 Term      ::= id
             | int
             | (Expr)
+            | NLoad
 
 BinExpr   ::= Expr BinOp Expr
 
-NIfElse       ::= `if` Expr NScope {`else` NScope}
+NIfElse   ::= `if` Expr NScope {`else` NScope}
+
+NWhile    ::= `while` Expr NScope  
 
 NDeclare  ::= `let` id {`=` Expr} `;`
 NAssign   ::= id = Expr `;`
 NPrint    ::= `print` Expr `;`
 NRead     ::= `read` id `;`
 
-
+NLoad     ::= `&` Expr
+NStore    ::= `&` Expr `=` Expr `;`
 # Macros
 
 MULTIPLICATION = >>[-]>[-]<<<[->>+<<]>[->[-<<+>>>+<]>[-<+>]<<]<
@@ -46,8 +52,7 @@ const arr_len = 5;
 
 let i = arr_len;
 while i {
-    @(arr+i) = i;
-
+    &(arr+i) <- i;
     i = i - 1;
 }
 
