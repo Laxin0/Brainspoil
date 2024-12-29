@@ -15,12 +15,16 @@ NScope    ::= `{` [Statement] `}`
 Expr      ::= Term 
             | BinExpr
 
+# TODD: maybe replace Expr to Term where it is
+
 Term      ::= id
             | int
             | (Expr)
-            | NLoad
+            | UnExpr
 
 BinExpr   ::= Expr BinOp Expr
+
+UnExpr    ::= NLoad | NNot
 
 NIfElse   ::= `if` Expr NScope {`else` NScope}
 
@@ -31,7 +35,8 @@ NAssign   ::= id = Expr `;`
 NPrint    ::= `print` Expr `;`
 NRead     ::= `read` id `;`
 
-NLoad     ::= `&` Expr
+NLoad     ::= `&` Term
+NNot      ::= `!` Term
 NStore    ::= `&` Expr `=` Expr `;`
 # Macros
 

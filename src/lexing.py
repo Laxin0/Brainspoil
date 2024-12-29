@@ -63,7 +63,14 @@ class Lexer():
                 self.index += 1
                 self.col += 1
                 return Token(TokenType.BINOP, str_to_binop[c], loc)
-            
+            elif c == '#':
+                while c != '\n':
+                    self.index += 1
+                    if self.index >= len(self.src):
+                        return Token(TokenType.EOF, None, self.loc())
+                    c = self.src[self.index]
+                self.col = 1
+                self.line += 1
             else:
                 error(f"{self.loc()}: ERROR: Invalid character `{c}`")
 

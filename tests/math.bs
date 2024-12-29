@@ -1,0 +1,7 @@
+let a;
+let b = 3;
+let c = 4;
+
+let res = ((a+1))+((b-b)*c+3)*2-3+10; # must be 4
+
+print 10; # \n

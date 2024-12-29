@@ -17,6 +17,7 @@ def main():
     it = Intepr(code, 32, False)
     print("Execution:")
     it.run()
+    print(3)
     print("Memory:")
     it.dumpmem()
 

@@ -1,0 +1,5 @@
+if 1{
+    print(69);
+}else
+
+# oops
