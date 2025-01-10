@@ -1,6 +1,9 @@
 import subprocess
 from sys import argv
 
+PYTHON = "python3"
+COMP = "diff"
+
 test_files = [
     "math.bs",
     "err_eof.bs"
@@ -8,13 +11,15 @@ test_files = [
 
 def record():
     for file in test_files:
-        subprocess.run(["python", "src\\log.py", f"tests\\{file}", ">", f"tests\\{file}.expect"], shell=True)
+        with open(f"tests/{file}.expect", "w") as out_file:
+            subprocess.run([PYTHON, "src/log.py", f"tests/{file}"], stdout = out_file)
 
 failed = []
 def run():
     for file in test_files:
-        subprocess.run(["python", "src\\log.py", f"tests\\{file}", ">", f"tests\\{file}.out"], shell=True)
-        if subprocess.run(["fc", "/a", f"tests\\{file}.out", f"tests\\{file}.expect"], shell=True).returncode != 0:
+        with open(f"tests/{file}.out", "w") as out_file:
+            subprocess.run([PYTHON, "src/log.py", f"tests/{file}"], stdout = out_file)
+        if subprocess.run([COMP, f"tests/{file}.out", f"tests/{file}.expect"]).returncode != 0:
             failed.append(file)
     if len(failed) == 0:
         print(f"All {len(test_files)} test are OK!")
