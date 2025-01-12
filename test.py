@@ -1,25 +1,25 @@
 import subprocess
 from sys import argv
+from glob import glob
 
-PYTHON = "python3"
-COMP = "diff"
+PYTHON = "python"
+COMP = "fc"
 
-test_files = [
-    "math.bs",
-    "err_eof.bs"
-]
+test_files = ''
 
 def record():
+    global test_files
     for file in test_files:
-        with open(f"tests/{file}.expect", "w") as out_file:
-            subprocess.run([PYTHON, "src/log.py", f"tests/{file}"], stdout = out_file)
+        with open(f"{file}.expect", "w") as out_file:
+            subprocess.run([PYTHON, "src/log.py", f"{file}"], stdout = out_file)
 
 failed = []
 def run():
+    global test_files
     for file in test_files:
-        with open(f"tests/{file}.out", "w") as out_file:
-            subprocess.run([PYTHON, "src/log.py", f"tests/{file}"], stdout = out_file)
-        if subprocess.run([COMP, f"tests/{file}.out", f"tests/{file}.expect"]).returncode != 0:
+        with open(f"{file}.out", "w") as out_file:
+            subprocess.run([PYTHON, "src/log.py", f"{file}"], stdout = out_file)
+        if subprocess.run([COMP, f"{file}.out", f"{file}.expect"]).returncode != 0:
             failed.append(file)
     if len(failed) == 0:
         print(f"All {len(test_files)} test are OK!")
@@ -34,6 +34,7 @@ if __name__ == "__main__":
         print("rec for record tests' output, run for compare output with expected)")
         exit(0)
 
+    test_files = glob("tests/*.bs")
     if argv[1] == "rec":
         record()
     else:

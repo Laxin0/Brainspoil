@@ -17,8 +17,7 @@ def main():
     it = Intepr(code, 32, False)
     print("Execution:")
     it.run()
-    print(3)
-    print("Memory:")
+    print("\nMemory:")
     it.dumpmem()
 
 if __name__ == "__main__":

@@ -1,0 +1,8 @@
+{} #empty
+let bar;
+{
+    bar = 5;
+    let foo;
+}
+
+let foo;

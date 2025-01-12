@@ -1,0 +1,12 @@
+let i = 5;
+while i{
+    print(42);
+    i = i-1;
+}
+print 10;
+i = 7;
+while i-3{
+    let c = 69+i;
+    print c;
+    i = i-1;
+}
