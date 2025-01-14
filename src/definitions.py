@@ -21,6 +21,7 @@ class TokenType(Enum):
 
     IDENT = iota()
     INTLIT = iota()
+    CHAR = iota()
 
     ASSIGN = iota()
 
@@ -84,6 +85,7 @@ tok_to_str = {
 
     TokenType.IDENT: 'identifier',
     TokenType.INTLIT: 'integer literal',
+    TokenType.CHAR: 'character constant',
 
     TokenType.ASSIGN: '`=`',
 
@@ -96,6 +98,13 @@ tok_to_str = {
     TokenType.AND: '`&`',
 
     TokenType.EOF: 'end of file',
+}
+
+esc_chars = { #TODO: add more or use more elegant algorithm
+    'n': '\n',
+    't': '\t',
+    '0': '\0',
+    'r': '\r'
 }
 
 @dataclass

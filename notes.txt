@@ -19,12 +19,11 @@ Expr      ::= Term
 
 Term      ::= id
             | int
+            | char
             | (Expr)
-            | UnExpr
+            | NLoad
 
 BinExpr   ::= Expr BinOp Expr
-
-UnExpr    ::= NLoad | NNot
 
 NIfElse   ::= `if` Expr NScope {`else` NScope}
 
@@ -37,7 +36,9 @@ NRead     ::= `read` id `;`
 
 NLoad     ::= `&` Term
 NNot      ::= `!` Term
-NStore    ::= `&` Expr `=` Expr `;`
+NStore    ::= `&` Term `=` Expr `;`
+
+
 # Macros
 
 MULTIPLICATION = >>[-]>[-]<<<[->>+<<]>[->[-<<+>>>+<]>[-<+>]<<]<

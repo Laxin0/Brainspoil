@@ -71,6 +71,23 @@ class Lexer():
                     c = self.src[self.index]
                 self.col = 1
                 self.line += 1
+            elif c == '\'':
+                loc = self.loc()
+                self.index += 1; self.col += 1
+                char = ''
+                current = self.src[self.index]
+                if current == '\\':
+                    self.index += 1; self.col += 1
+                    if self.src[self.index] == '\n': error(f"{self.loc()}: ERROR: Character constant must be in the one line.")
+                    if not(self.src[self.index] in esc_chars.keys()): error(f"{self.loc()}: ERROR: Unknown escape character `{self.src[self.index]}`")
+                    char = esc_chars[self.src[self.index]]
+                elif current == '\n': error(f"{self.loc()}: ERROR: Character constant must be in the one line.")
+                else:
+                    char = current
+                self.index += 1; self.col += 1
+                if self.src[self.index] != '\'': error(f"{self.loc()}: ERROR: Expected closing `'` in character constant, but found `{self.src[self.index]}`")
+                self.index += 1; self.col += 1
+                return Token(TokenType.CHAR, char, loc)
             else:
                 error(f"{self.loc()}: ERROR: Invalid character `{c}`")
 
@@ -100,8 +117,10 @@ def parse_term(lex: Lexer) -> Expr:
         return exp
     elif lex.next_is(TokenType.AND):
         lex.expect(TokenType.AND)
-        exp = parse_expr(lex, 1)
+        exp = parse_term(lex)
         return NTerm(NLoad(exp))
+    elif lex.next_is(TokenType.CHAR):
+        return NTerm(ord(lex.expect(TokenType.CHAR).val))
     else:
         error(f"{lex.peek().loc}: ERROR: Expected {tok_to_str[TokenType.INTLIT]}, {tok_to_str[TokenType.IDENT]} or {tok_to_str[TokenType.PAREN_OP]} " +\
               f" but found {tok_to_str[lex.peek().type]}")
@@ -174,7 +193,7 @@ def parse_while(lex: Lexer):
 
 def parse_store(lex: Lexer) -> Statement:
     lex.expect(TokenType.AND)
-    addr = parse_expr(lex, 1)
+    addr = parse_term(lex)
     lex.expect(TokenType.ASSIGN)
     val = parse_expr(lex, 1)
     lex.expect(TokenType.SEMI)
