@@ -47,6 +47,40 @@ MULTIPLICATION = >>[-]>[-]<<<[->>+<<]>[->[-<<+>>>+<]>[-<+>]<<]<
 
 # Ideas
 
+Vars{id:: addr}
+
+
+
+macros[]
+put: <obj>,
+Array.put: <obj>
+
+vid.mid -> f"{vars[vid].type}.{mid}" 
+
+struct Array{
+    ptr,
+    len
+    
+    macro put(addr, val){
+        *(ptr+addr)=val;
+    }
+    
+}
+
+let arr: Array = {0, 8};
+arr.put(4, 0)
+
+macro put(arr, addr, val){
+    *(arr+addr) = val;
+}
+
+
+put(arr, 4, 0);
+
+
+
+
+
 python??? Library for command line arguments
 
 # while
@@ -114,3 +148,17 @@ a_aia1a0****0i0
 a_a1a1a0****0i0
    ^
 >]<[->>]<<
+
+macro foo(a, b){
+    @a*@b
+}
+
+macro bar(a, b){
+    @a = @b;
+}
+
+macro main{
+    let a = 2;
+    let b = 42;
+    foo(&)
+}
