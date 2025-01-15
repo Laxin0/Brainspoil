@@ -32,6 +32,8 @@ class TokenType(Enum):
     CURL_CL = iota()
     SEMI = iota()
     AND = iota()
+    AT = iota()
+    NOT = iota()
 
     EOF = iota()
 
@@ -71,8 +73,9 @@ puncts = {
     "(": TokenType.PAREN_OP,
     ")": TokenType.PAREN_CL,
     "}": TokenType.CURL_CL,
-    "{": TokenType.CURL_OP,
-    "&": TokenType.AND
+    "{": TokenType.CURL_OP, 
+    "@": TokenType.AT,
+    "!": TokenType.NOT
 }
 
 tok_to_str = {
@@ -96,6 +99,8 @@ tok_to_str = {
     TokenType.CURL_CL: '`}`',
     TokenType.SEMI: '`;`',
     TokenType.AND: '`&`',
+    TokenType.AT: '`@`',
+    TokenType.NOT: '`!`',
 
     TokenType.EOF: 'end of file',
 }
@@ -129,6 +134,10 @@ class Expr(): pass
 @dataclass
 class NLoad():
     addr: Expr
+
+@dataclass
+class NNot():
+    expr: NTerm
 
 @dataclass
 class NTerm(Expr):

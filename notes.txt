@@ -34,11 +34,13 @@ NAssign   ::= id = Expr `;`
 NPrint    ::= `print` Expr `;`
 NRead     ::= `read` id `;`
 
-NLoad     ::= `&` Term
+NLoad     ::= `@` Term
 NNot      ::= `!` Term
-NStore    ::= `&` Term `=` Expr `;`
+NStore    ::= `@` Term `=` Expr `;`
 
+!a
 
+a and b
 # Macros
 
 MULTIPLICATION = >>[-]>[-]<<<[->>+<<]>[->[-<<+>>>+<]>[-<+>]<<]<

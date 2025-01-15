@@ -64,6 +64,20 @@ def gen_load(node: NLoad):
     head = hp
     return res
 
+def gen_not(node: NNot):
+    assert isinstance(node, NNot)
+    global sp
+    res = ''
+    addr = sp
+    res += to(sp)
+    res += "[-]+"
+    sp += 1
+    res += gen_term(node.expr)
+    res += to(addr)
+    res += ">[<[-]>[-]]<"
+    sp = addr + 1
+    return res
+
 def gen_term(node: NTerm):
     assert isinstance(node, NTerm)
     val = node.val
@@ -76,8 +90,10 @@ def gen_term(node: NTerm):
         return pushint(val)
     elif isinstance(val, NLoad):
         return gen_load(val)
+    elif isinstance(val, NNot):
+        return gen_not(val)
     else:
-        error("Unreacheable")
+        assert False, "Unreacheable"
 
 def gen_binop(op: BinOpKind):
     global head
@@ -237,7 +253,7 @@ def gen_statement(node: Statement):
     elif isinstance(node, NStore):
         return gen_store(node)
     else:
-        raise AssertionError("Unreacheable statement")
+        assert False, "Unreacheable statement"
 
 def gen_prog(node: NProg, formatting=False):
     assert isinstance(node, NProg)

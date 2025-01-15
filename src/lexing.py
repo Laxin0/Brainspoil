@@ -52,6 +52,11 @@ class Lexer():
                     c = self.src[self.index]
                 return Token(TokenType.INTLIT, buff, loc)
             
+            elif (self.index + 1) > len(self.src) and (punc := c + self.src[self.index+1] in puncts.keys()): #TODO: make better (it's fucking disgusting)
+                loc = self.loc()
+                self.index += 2
+                self.col += 2
+                return Token(puncts[punc], None, loc)
             elif c in puncts.keys():
                 loc = self.loc()
                 self.index += 1
@@ -63,15 +68,16 @@ class Lexer():
                 self.index += 1
                 self.col += 1
                 return Token(TokenType.BINOP, str_to_binop[c], loc)
-            elif c == '#':
+            elif c == '#': #TODO: make better
                 while c != '\n':
                     self.index += 1
                     if self.index >= len(self.src):
                         return Token(TokenType.EOF, None, self.loc())
                     c = self.src[self.index]
                 self.col = 1
+                self.index += 1
                 self.line += 1
-            elif c == '\'':
+            elif c == '\'': #TODO: make better
                 loc = self.loc()
                 self.index += 1; self.col += 1
                 char = ''
@@ -115,12 +121,16 @@ def parse_term(lex: Lexer) -> Expr:
         exp = parse_expr(lex, 1)
         lex.expect(TokenType.PAREN_CL)
         return exp
-    elif lex.next_is(TokenType.AND):
-        lex.expect(TokenType.AND)
+    elif lex.next_is(TokenType.AT):
+        lex.expect(TokenType.AT)
         exp = parse_term(lex)
         return NTerm(NLoad(exp))
     elif lex.next_is(TokenType.CHAR):
         return NTerm(ord(lex.expect(TokenType.CHAR).val))
+    elif lex.next_is(TokenType.NOT):
+        lex.expect(TokenType.NOT)
+        t = parse_term(lex)
+        return NTerm(NNot(t))
     else:
         error(f"{lex.peek().loc}: ERROR: Expected {tok_to_str[TokenType.INTLIT]}, {tok_to_str[TokenType.IDENT]} or {tok_to_str[TokenType.PAREN_OP]} " +\
               f" but found {tok_to_str[lex.peek().type]}")
@@ -192,7 +202,7 @@ def parse_while(lex: Lexer):
     return NWhile(cond, body)
 
 def parse_store(lex: Lexer) -> Statement:
-    lex.expect(TokenType.AND)
+    lex.expect(TokenType.AT)
     addr = parse_term(lex)
     lex.expect(TokenType.ASSIGN)
     val = parse_expr(lex, 1)
@@ -214,7 +224,7 @@ def parse_statement(lex: Lexer) -> Statement:
         return parse_ifelse(lex)
     elif lex.next_is(TokenType.KW_WHILE):
         return parse_while(lex)
-    elif lex.next_is(TokenType.AND):
+    elif lex.next_is(TokenType.AT):
         return parse_store(lex)
     else:
         # TODO: rewitre
