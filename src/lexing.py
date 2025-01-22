@@ -62,12 +62,6 @@ class Lexer():
                 self.index += 1
                 self.col += 1
                 return Token(puncts[c], None, loc)
-            
-            elif c in str_to_binop.keys():
-                loc = self.loc()
-                self.index += 1
-                self.col += 1
-                return Token(TokenType.BINOP, str_to_binop[c], loc)
             elif c == '#': #TODO: make better
                 while c != '\n':
                     self.index += 1
@@ -111,6 +105,11 @@ class Lexer():
         else:
             error(f"{self.loc()}: ERROR: Expected {tok_to_str[ttype]} but found {tok_to_str[self.buffer.type]}")
 
+    def get_next(self):
+        cur = self.buffer
+        self.buffer = self.next()
+        return cur
+
 def parse_term(lex: Lexer) -> Expr:
     if lex.next_is(TokenType.INTLIT):
         return NTerm(int(lex.expect(TokenType.INTLIT).val))
@@ -139,10 +138,10 @@ def parse_term(lex: Lexer) -> Expr:
 def parse_expr(lex: Lexer, min_prec) -> Expr:
     lhs = parse_term(lex)
     
-    while True:
-        if not lex.next_is(TokenType.BINOP) or binop_prec[lex.peek().val] < min_prec:
+    while True: 
+        if (not lex.peek().type in ttype_to_binop.keys()) or binop_prec[ttype_to_binop[lex.peek().type]] < min_prec:
             break
-        op = lex.expect(TokenType.BINOP).val
+        op = ttype_to_binop[lex.get_next().type]
         prec = binop_prec[op]
         next_min_prec = prec + 1
 

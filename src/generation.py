@@ -108,6 +108,10 @@ def gen_binop(op: BinOpKind):
             res = f"{to(sp-2)}>>[-]>[-]<<<[->>+<<]>[->[-<<+>>>+<]>[-<+>]<<]<"
         case BinOpKind.DIV:
             raise NotImplementedError()
+        case BinOpKind.AND:
+            res = f"{to(sp-2)}>>[-]<<[>[>>+<<[-]]<[-]]>>[-<<+>>]<<"
+        case BinOpKind.OR:
+            res = f"{to(sp-2)}>>[-]++<<[>>-<<>[>>-<<[-]]<[-]]>>[-<<+>>]<<"
     return res+'\n'
         
 
