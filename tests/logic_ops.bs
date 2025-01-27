@@ -1,0 +1,15 @@
+let memP1 = 24; # so i can see where it on the stack
+
+let a = 3 && 0 || 42;
+let b = 3 && 0 || 42 && 0;
+let c = (1 || 42) && 0;
+let d = 0 || 0 || 42;
+
+let memP2 = 44;
+
+let e = 42 == 55;
+let f = 2 == 2;
+let g = 2 != 4;
+let h = 4 != 4;
+
+let memP3 = 42;

@@ -30,7 +30,7 @@ class Lexer():
             elif c.isalpha():
                 loc = self.loc()
                 buff = ""
-                while c.isalnum():
+                while c.isalnum() or c == '_':
                     buff += c
                     self.index += 1
                     self.col += 1
@@ -52,8 +52,9 @@ class Lexer():
                     c = self.src[self.index]
                 return Token(TokenType.INTLIT, buff, loc)
             
-            elif (self.index + 1) > len(self.src) and (punc := c + self.src[self.index+1] in puncts.keys()): #TODO: make better (it's fucking disgusting)
+            elif (self.index + 1) < len(self.src) and ((c + self.src[self.index+1]) in puncts.keys()): #TODO: make better (it's fucking disgusting)
                 loc = self.loc()
+                punc = c + self.src[self.index+1]
                 self.index += 2
                 self.col += 2
                 return Token(puncts[punc], None, loc)

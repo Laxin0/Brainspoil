@@ -109,9 +109,15 @@ def gen_binop(op: BinOpKind):
         case BinOpKind.DIV:
             raise NotImplementedError()
         case BinOpKind.AND:
-            res = f"{to(sp-2)}>>[-]<<[>[>>+<<[-]]<[-]]>>[-<<+>>]<<"
+            res = f"{to(sp)}[-]<<[>[>+<[-]]<[-]]>>[-<<+>>]"
         case BinOpKind.OR:
-            res = f"{to(sp-2)}>>[-]++<<[>>-<<>[>>-<<[-]]<[-]]>>[-<<+>>]<<"
+            res = f"{to(sp)}[-]<<[>>+<<[-]]>[>+<[-]]>[<<+>>[-]]"
+        case BinOpKind.EQ:
+            res = f"{to(sp-2)}[->-<]+>[<[-]>[-]]<"
+        case BinOpKind.NEQ:
+            res = f"{to(sp-2)}[->-<]>[<+>[-]]<"
+        case _:
+            raise AssertionError("Unreacheable")
     return res+'\n'
         
 

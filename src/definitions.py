@@ -37,6 +37,8 @@ class TokenType(Enum):
     AND = iota()
     OR = iota()
     AT = iota()
+    EQ = iota()
+    NEQ = iota()
     NOT = iota()
 
     EOF = iota()
@@ -49,23 +51,31 @@ class BinOpKind(Enum):
     DIV = iota()
     AND = iota()
     OR = iota()
+    NEQ = iota()
+    EQ = iota()
 
-ttype_to_binop = {
+
+ttype_to_binop = { #TODO: maybe i can simplify this shit
     TokenType.PLUS: BinOpKind.ADD,
     TokenType.MINUS: BinOpKind.SUB,
     TokenType.TIMES: BinOpKind.MULT,
     TokenType.SLASH: BinOpKind.DIV,
     TokenType.AND: BinOpKind.AND,
-    TokenType.OR: BinOpKind.OR
+    TokenType.OR: BinOpKind.OR,
+    TokenType.EQ: BinOpKind.EQ,
+    TokenType.NEQ: BinOpKind.NEQ
+
 }
 
-binop_prec = {
-    BinOpKind.ADD: 3,
-    BinOpKind.SUB: 3,
-    BinOpKind.MULT: 4,
-    BinOpKind.DIV: 4,
-    BinOpKind.AND: 2,
-    BinOpKind.OR: 1
+binop_prec = { # < > <= >= 9
+    BinOpKind.ADD: 12,
+    BinOpKind.SUB: 12,
+    BinOpKind.MULT: 13,
+    BinOpKind.DIV: 13,
+    BinOpKind.EQ: 8,
+    BinOpKind.NEQ: 8,
+    BinOpKind.AND: 4,
+    BinOpKind.OR: 3
 }
 
 keywords = {
@@ -89,7 +99,11 @@ puncts = {
     "+": TokenType.PLUS,
     "-": TokenType.MINUS,
     "*": TokenType.TIMES,
-    "/": TokenType.SLASH
+    "/": TokenType.SLASH,
+    "&&": TokenType.AND,
+    "||": TokenType.OR,
+    "==": TokenType.EQ,
+    "!=": TokenType.NEQ
 }
 
 tok_to_str = {
@@ -115,7 +129,10 @@ tok_to_str = {
     TokenType.CURL_OP: '`{`',
     TokenType.CURL_CL: '`}`',
     TokenType.SEMI: '`;`',
-    TokenType.AND: '`&`',
+    TokenType.AND: '`&&`',
+    TokenType.OR: '`||`',
+    TokenType.EQ: '`==`',
+    TokenType.NEQ: '`!=`',
     TokenType.AT: '`@`',
     TokenType.NOT: '`!`',
 

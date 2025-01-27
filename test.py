@@ -12,6 +12,7 @@ def record():
     for file in test_files:
         with open(f"{file}.expect", "w") as out_file:
             subprocess.run([PYTHON, "src/log.py", f"{file}"], stdout = out_file)
+    print(f"All {len(test_files)} tests recorded.")
 
 failed = []
 def run():
