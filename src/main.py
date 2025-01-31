@@ -7,7 +7,7 @@ def main():
     #    print("Usage: python <src_code.bs> <out.bf>")
     #    exit(0)
     #_, in_file, out_file = argv 
-    in_file, out_file = "tests/heap.bs", "build/out.bf"
+    in_file, out_file = "code.bs", "build/out.bf"
     src = ''
     with open(in_file) as f:
         src = f.read()

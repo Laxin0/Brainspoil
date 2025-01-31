@@ -40,6 +40,10 @@ class TokenType(Enum):
     EQ = iota()
     NEQ = iota()
     NOT = iota()
+    LESS = iota()
+    GREATER = iota()
+    LESSEQ = iota()
+    GREATEREQ = iota()
 
     EOF = iota()
 
@@ -53,6 +57,10 @@ class BinOpKind(Enum):
     OR = iota()
     NEQ = iota()
     EQ = iota()
+    LESS = iota()
+    GREATER = iota()
+    GREATEREQ = iota()
+    LESSEQ = iota()
 
 
 ttype_to_binop = { #TODO: maybe i can simplify this shit
@@ -63,7 +71,11 @@ ttype_to_binop = { #TODO: maybe i can simplify this shit
     TokenType.AND: BinOpKind.AND,
     TokenType.OR: BinOpKind.OR,
     TokenType.EQ: BinOpKind.EQ,
-    TokenType.NEQ: BinOpKind.NEQ
+    TokenType.NEQ: BinOpKind.NEQ,
+    TokenType.GREATER: BinOpKind.GREATER,
+    TokenType.LESS: BinOpKind.LESS,
+    TokenType.GREATEREQ: BinOpKind.GREATEREQ,
+    TokenType.LESSEQ: BinOpKind.LESSEQ
 
 }
 
@@ -72,6 +84,10 @@ binop_prec = { # < > <= >= 9
     BinOpKind.SUB: 12,
     BinOpKind.MULT: 13,
     BinOpKind.DIV: 13,
+    BinOpKind.GREATER: 9,
+    BinOpKind.LESS: 9,
+    BinOpKind.GREATEREQ: 9,
+    BinOpKind.LESSEQ: 9,
     BinOpKind.EQ: 8,
     BinOpKind.NEQ: 8,
     BinOpKind.AND: 4,
@@ -103,7 +119,11 @@ puncts = {
     "&&": TokenType.AND,
     "||": TokenType.OR,
     "==": TokenType.EQ,
-    "!=": TokenType.NEQ
+    "!=": TokenType.NEQ,
+    ">": TokenType.GREATER,
+    "<": TokenType.LESS,
+    ">=": TokenType.GREATEREQ,
+    "<=": TokenType.LESSEQ
 }
 
 tok_to_str = {
@@ -135,6 +155,10 @@ tok_to_str = {
     TokenType.NEQ: '`!=`',
     TokenType.AT: '`@`',
     TokenType.NOT: '`!`',
+    TokenType.LESSEQ: '`<=`',
+    TokenType.LESS: '`<`',
+    TokenType.GREATER: '`>`',
+    TokenType.GREATEREQ: '`>=`',
 
     TokenType.EOF: 'end of file',
 }

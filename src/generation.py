@@ -8,6 +8,8 @@ bf_code = ""
 
 # TODO: make comments and formating optional
 
+cmp = "[-]>[-]<<<[->>+>+<<<]>>>[-<<<+>>>][-]>[-]<<<[->>+>+<<<]>>>[-<<<+>>>][-]<<[>[>+<[-]]<[-]]>>[-<<+>>]<<[<<->->>[-]>[-]<<<<[->>>+>+<<<<]>>>>[-<<<<+>>>>][-]>[-]<<<<[->>>+>+<<<<]>>>>[-<<<<+>>>>][-]<<[>[>+<[-]]<[-]]>>[-<<+>>]<<<[-]>[-<+>]<]"
+
 def to(addr):
     global head, sp
     steps = addr-head
@@ -28,7 +30,7 @@ def store(addr: int):
 
 def top(addr: int):
     global sp
-    res = f"{to(sp)}[-]{to(addr)}[-{to(sp)}+{to(sp+1)}+{to(addr)}]{to(sp+1)}[-{to(addr)}+{to(sp+1)}]\n"
+    res = f"{to(sp)}[-]>[-]<{to(addr)}[-{to(sp)}+{to(sp+1)}+{to(addr)}]{to(sp+1)}[-{to(addr)}+{to(sp+1)}]\n"
     sp += 1
     return res
 
@@ -116,6 +118,14 @@ def gen_binop(op: BinOpKind):
             res = f"{to(sp-2)}[->-<]+>[<[-]>[-]]<"
         case BinOpKind.NEQ:
             res = f"{to(sp-2)}[->-<]>[<+>[-]]<"
+        case BinOpKind.LESS:
+            res = to(sp) + cmp + '<<[-]>[<+>[-]]>'
+        case BinOpKind.LESSEQ:
+            res = to(sp) + cmp + '<[-]<[->+<]+>[<[-]>[-]]>'
+        case BinOpKind.GREATER:
+            res = to(sp) + cmp + '<[-]<[->+<]>[<+>[-]]>'
+        case BinOpKind.GREATEREQ:
+            res = to(sp) + cmp + '<<[-]+>[<[-]>[-]]>'
         case _:
             raise AssertionError("Unreacheable")
     return res+'\n'
