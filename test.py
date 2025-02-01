@@ -11,7 +11,7 @@ def record():
     global test_files
     for file in test_files:
         with open(f"{file}.expect", "w") as out_file:
-            subprocess.run([PYTHON, "src/log.py", f"{file}"], stdout = out_file)
+            subprocess.run([PYTHON, "log.py", f"{file}"], stdout = out_file)
     print(f"All {len(test_files)} tests recorded.")
 
 failed = []
@@ -19,7 +19,7 @@ def run():
     global test_files
     for file in test_files:
         with open(f"{file}.out", "w") as out_file:
-            subprocess.run([PYTHON, "src/log.py", f"{file}"], stdout = out_file)
+            subprocess.run([PYTHON, "log.py", f"{file}"], stdout = out_file)
         if subprocess.run([COMP, f"{file}.out", f"{file}.expect"]).returncode != 0:
             failed.append(file)
     if len(failed) == 0:

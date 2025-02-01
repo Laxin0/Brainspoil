@@ -220,11 +220,6 @@ macro put(arr, addr, val){
 put(arr, 4, 0);
 
 
-
-
-
-python??? Library for command line arguments
-
 # while
 
 gen_cond to(cond)[  *body*  gen_cond store(cond) to(cond)]
@@ -290,17 +285,3 @@ a_aia1a0****0i0
 a_a1a1a0****0i0
    ^
 >]<[->>]<<
-
-macro foo(a, b){
-    @a*@b
-}
-
-macro bar(a, b){
-    @a = @b;
-}
-
-macro main{
-    let a = 2;
-    let b = 42;
-    foo(&)
-}

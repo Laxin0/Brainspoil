@@ -6,7 +6,6 @@ head = 0
 hp = HEAP_CAP*2+1
 sp = hp+1
 bfvars = {}
-bf_code = ""
 
 # TODO: make comments and formating optional
 
@@ -277,10 +276,14 @@ def gen_statement(node: Statement):
     else:
         assert False, "Unreacheable statement"
 
-def gen_prog(node: NProg, formatting=False):
+def gen_prog(node: NProg, heap: int, formatting=False):
     assert isinstance(node, NProg)
-    global hp
-    #prepare_tape = f"{to(hp)}<+<<++<<+++>>>>>"
+    global HEAP_CAP, head, hp, sp, bfvars #TODO: I dont like it at all
+    HEAP_CAP = 32
+    head = 0
+    hp = HEAP_CAP*2+1
+    sp = hp+1
+    bfvars = {}
     code = "\n".join(gen_statement(s) for s in node.stmts)
     if formatting:
         return code
