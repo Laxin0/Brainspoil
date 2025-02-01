@@ -1,8 +1,10 @@
 from definitions import *
 #_A_A0...N
+
+HEAP_CAP = 32
 head = 0
-sp = 5
-hp = 4
+hp = HEAP_CAP*2+1
+sp = hp+1
 bfvars = {}
 bf_code = ""
 

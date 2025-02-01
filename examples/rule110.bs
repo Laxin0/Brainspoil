@@ -1,6 +1,3 @@
-$HEAP 32
-
-
 # Rule 110
 
 let field = 0;
