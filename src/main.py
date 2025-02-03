@@ -1,6 +1,7 @@
 from lexing import Lexer, parse_prog
 from generation import gen_prog
 from sys import argv
+from pprint import pprint
 
 def usage():
     print("""
@@ -17,6 +18,7 @@ OPTIONS:
 
 def main():
     formatting = False
+    print_ast = False
     heap_cap = 32
     input_file = None
     out_file = None
@@ -31,6 +33,8 @@ def main():
             out_file = args.pop(0)
         elif arg == '-f':
             formatting = True
+        elif arg == '--ast':
+            print_ast = True
         elif arg.startswith("--heap="):
             try:
                 heap_cap = int(arg[7:])
@@ -57,7 +61,9 @@ def main():
         exit(1)
 
     l = Lexer(src, input_file)
-    generated_code = gen_prog(parse_prog(l), formatting=formatting, heap=heap_cap)
+    ast = parse_prog(l)
+    if print_ast: pprint(ast)
+    generated_code = gen_prog(ast, formatting=formatting, heap=heap_cap)
     if out_file == None:
         print(generated_code)
     else:

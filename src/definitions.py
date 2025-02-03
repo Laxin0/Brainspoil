@@ -18,6 +18,7 @@ class TokenType(Enum):
     KW_IF = iota()
     KW_ELSE = iota()
     KW_WHILE = iota()
+    KW_MACRO = iota()
 
     IDENT = iota()
     INTLIT = iota()
@@ -29,6 +30,7 @@ class TokenType(Enum):
     MINUS = iota()
     TIMES = iota()
     SLASH = iota()
+    COMMA = iota()
     PAREN_OP = iota()
     PAREN_CL = iota()
     CURL_OP = iota()
@@ -100,7 +102,8 @@ keywords = {
     "read": TokenType.KW_READ,
     "if": TokenType.KW_IF,
     "else": TokenType.KW_ELSE,
-    "while": TokenType.KW_WHILE
+    "while": TokenType.KW_WHILE,
+    "macro": TokenType.KW_MACRO
 }
 
 puncts = {
@@ -123,7 +126,8 @@ puncts = {
     ">": TokenType.GREATER,
     "<": TokenType.LESS,
     ">=": TokenType.GREATEREQ,
-    "<=": TokenType.LESSEQ
+    "<=": TokenType.LESSEQ,
+    ",": TokenType.COMMA
 }
 
 tok_to_str = {
@@ -133,6 +137,7 @@ tok_to_str = {
     TokenType.KW_IF: '`if` keyword',
     TokenType.KW_ELSE: '`else` keyword',
     TokenType.KW_WHILE: '`while` keyword',
+    TokenType.KW_MACRO: '`macro` keyword',
 
     TokenType.IDENT: 'identifier',
     TokenType.INTLIT: 'integer literal',
@@ -144,6 +149,7 @@ tok_to_str = {
     TokenType.MINUS: '`-`',
     TokenType.TIMES: '`*`',
     TokenType.SLASH: '`/`',
+    TokenType.COMMA: '`,`',
     TokenType.PAREN_OP: '`(`',
     TokenType.PAREN_CL: '`)`',
     TokenType.CURL_OP: '`{`',
@@ -247,7 +253,18 @@ class NIfElse(Statement):
 class NWhile(Statement):
     cond: Expr
     body: NScope
-    
+
+@dataclass
+class NMacroDef(Statement):
+    name: Token
+    args: list[str]
+    body: NScope
+
+@dataclass
+class NMacroUse():
+    name: Token
+    args: list[Token]
+
 @dataclass
 class NProg():
     stmts: list[Statement]

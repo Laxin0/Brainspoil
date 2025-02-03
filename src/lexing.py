@@ -99,6 +99,7 @@ class Lexer():
         return self.buffer
 
     def expect(self, ttype: TokenType) -> Token:
+        #if ttype == TokenType.PAREN_CL and self.buffer.type == TokenType.INTLIT: raise ValueError()
         if self.buffer.type == ttype:
             t = self.buffer
             self.buffer = self.next()
@@ -110,6 +111,8 @@ class Lexer():
         cur = self.buffer
         self.buffer = self.next()
         return cur
+
+macros = []
 
 def parse_term(lex: Lexer) -> Expr:
     if lex.next_is(TokenType.INTLIT):
@@ -209,10 +212,45 @@ def parse_store(lex: Lexer) -> Statement:
     lex.expect(TokenType.SEMI)
     return NStore(addr, val)
 
+def parse_macro_def(lex: Lexer) -> NMacroDef:
+    lex.expect(TokenType.KW_MACRO)
+    name = lex.expect(TokenType.IDENT)
+    macros.append(name.val)
+    lex.expect(TokenType.PAREN_OP)
+    args = []
+    if lex.next_is(TokenType.IDENT):
+        args.append(lex.expect(TokenType.IDENT))
+    while lex.next_is(TokenType.COMMA):
+        lex.expect(TokenType.COMMA)
+        args.append(lex.expect(TokenType.IDENT))
+    lex.expect(TokenType.PAREN_CL)
+
+    body = parse_scope(lex)
+
+    return NMacroDef(name, args, body)
+
+def parse_macro_use(lex: Lexer) -> NMacroUse: # just allocate arguments on the stack like variables with name 'macro.arg'
+    name = lex.expect(TokenType.IDENT)
+    lex.expect(TokenType.PAREN_OP)
+    args = []
+    if lex.next_is(TokenType.IDENT):
+        args.append(parse_term(lex, 0))
+    while lex.next_is(TokenType.COMMA):
+        lex.expect(TokenType.COMMA)
+        args.append(parse_expr(lex, 0))
+    lex.expect(TokenType.PAREN_CL)
+    return NMacroUse(name, args)
+
+
 def parse_statement(lex: Lexer) -> Statement:
     if lex.next_is(TokenType.KW_LET):
         return parse_declare(lex)
-    elif lex.next_is(TokenType.IDENT):
+    elif lex.next_is(TokenType.IDENT): # TODO: i don't like it
+        name = lex.peek().val
+        if name in macros:
+            macro_use = parse_macro_use(lex)
+            lex.expect(TokenType.SEMI)
+            return macro_use
         return parse_assign(lex)
     elif lex.next_is(TokenType.KW_PRINT):
         return parse_print(lex)
@@ -226,6 +264,8 @@ def parse_statement(lex: Lexer) -> Statement:
         return parse_while(lex)
     elif lex.next_is(TokenType.AT):
         return parse_store(lex)
+    elif lex.next_is(TokenType.KW_MACRO):
+        return parse_macro_def(lex)
     else:
         # TODO: rewitre
         error(f"{lex.peek().loc}: ERROR: Expected {tok_to_str[TokenType.KW_LET]} " +\

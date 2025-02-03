@@ -6,11 +6,17 @@ head = 0
 hp = HEAP_CAP*2+1
 sp = hp+1
 bfvars = {}
-
+bfmacros = {}
+local_name = ''
 # TODO: make comments and formating optional
 
 cmp = "[-]>[-]<<<[->>+>+<<<]>>>[-<<<+>>>][-]>[-]<<<[->>+>+<<<]>>>[-<<<+>>>][-]<<[>[>+<[-]]<[-]]>>[-<<+>>]<<[<<->->>[-]>[-]<<<<[->>>+>+<<<<]>>>>[-<<<<+>>>>][-]>[-]<<<<[->>>+>+<<<<]>>>>[-<<<<+>>>>][-]<<[>[>+<[-]]<[-]]>>[-<<+>>]<<<[-]>[-<+>]<]"
 
+def define_macro(macro: NMacroDef):
+    if macro.name.val in bfmacros.keys():
+        error(f"{macro.name.loc}: ERROR: Redefinition of macro `{macro.name.val}`")
+    bfmacros.update({macro.name.val: macro}) # TODO: i don't like that name still stores as token
+    
 def to(addr):
     global head, sp
     steps = addr-head
@@ -273,6 +279,9 @@ def gen_statement(node: Statement):
         return gen_while(node)
     elif isinstance(node, NStore):
         return gen_store(node)
+    elif isinstance(node, NMacroDef):
+        define_macro(node)
+        return ''
     else:
         assert False, "Unreacheable statement"
 
