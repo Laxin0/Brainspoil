@@ -1,0 +1,3 @@
+macro foo(a){}
+
+foo(3, 5);

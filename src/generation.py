@@ -7,10 +7,11 @@ hp = HEAP_CAP*2+1
 sp = hp+1
 bfvars = {}
 bfmacros = {}
-local_name = ''
+nesting = 0
 # TODO: make comments and formating optional
 
 cmp = "[-]>[-]<<<[->>+>+<<<]>>>[-<<<+>>>][-]>[-]<<<[->>+>+<<<]>>>[-<<<+>>>][-]<<[>[>+<[-]]<[-]]>>[-<<+>>]<<[<<->->>[-]>[-]<<<<[->>>+>+<<<<]>>>>[-<<<<+>>>>][-]>[-]<<<<[->>>+>+<<<<]>>>>[-<<<<+>>>>][-]<<[>[>+<[-]]<[-]]>>[-<<+>>]<<<[-]>[-<+>]<]"
+ 
 
 def define_macro(macro: NMacroDef):
     if macro.name.val in bfmacros.keys():
@@ -87,14 +88,25 @@ def gen_not(node: NNot):
     sp = addr + 1
     return res
 
+def get_nesting(name: str) -> int:
+    global nesting, bfvars
+    for n in range(nesting, -1, -1):
+        if '.'*n+name in bfvars.keys():
+            return n
+    return -1
+
 def gen_term(node: NTerm):
+    global nesting
     assert isinstance(node, NTerm)
     val = node.val
     if isinstance(val, Token):
-        assert val.type == TokenType.IDENT
-        if not (val.val in bfvars.keys()):
-            error(f"{val.loc}: ERROR: Vriable `{val.val}` not declared.")
-        return top(bfvars[val.val])
+        assert val.type == TokenType.IDENT #TODO It will search variable in local scope or global. local name may be nested!!!!
+
+        name = val.val
+        nest = get_nesting(name)
+        if nest < 0:
+            error(f"{val.loc}: ERROR: Variable `{val.val}` not declared.")
+        return top(bfvars['.'*nest+name])
     elif isinstance(val, int):
         return pushint(val)
     elif isinstance(val, NLoad):
@@ -157,23 +169,28 @@ def gen_expr(node: Expr):
         raise TypeError(node.__class__)
 
 def gen_declare(node: NDeclare):
-    global bfvars, sp
+    global bfvars, sp, nesting
     assert isinstance(node, NDeclare)
     id, exp = node.id, node.val
-    if id.val in bfvars.keys():
+
+    if '.'*nesting+id.val in bfvars.keys():
         error(f"{id.loc}: ERROR: Variable `{id.val}` already declared.")
+
+    if get_nesting(id.val) >= 0: print(f"{id.loc}: WARNING: Variable shadowing. Variable `{id.val}` declared in an outer scope.")
     addr = sp
-    bfvars.update({id.val: addr})
+    bfvars.update({'.'*nesting+id.val: addr})
     sp += 1
     return gen_expr(exp) + store(addr)
 
 def gen_assign(node: NAssign):
     assert isinstance(node, NAssign)
     id = node.id
-    if not(id.val in bfvars.keys()):
+
+    nest = get_nesting(id.val)
+    if nest < 0:
         error(f"{id.loc}: ERROR: Variable `{id.val}` not declared.")
-    
-    return gen_expr(node.val) + store(bfvars[id.val])
+    name = '.'*nest+id.val
+    return gen_expr(node.val) + store(bfvars[name])
 
 def gen_print(node: NPrint):
     global sp
@@ -186,22 +203,26 @@ def gen_read(node: NPrint):
     global sp
     assert isinstance(node, NRead)
     id = node.id
-    if not(id.val in bfvars.keys()):
+    nest = get_nesting(id.val)
+    if nest < 0:
         error(f"{id.loc}: ERROR: Variable `{id.val}` not declared.")
+    name = '.'*nest+id.val
     res = to(sp)+','
     sp += 1 
-    res += store(bfvars[id.val])
+    res += store(bfvars[name])
     return res+'\n'
 
 def gen_scope(node: NScope):
     assert isinstance(node, NScope)
-    global sp, bfvars
+    global sp, bfvars, nesting
     res = ''
     vars_c = len(bfvars)
     sp_ = sp
 
+    nesting += 1
     res += '\n'.join(map(gen_statement, node.stmts))
-    
+    nesting -= 1
+
     for _ in range(len(bfvars)-vars_c):
         bfvars.popitem()
     sp = sp_
@@ -262,6 +283,32 @@ def gen_store(node):
     sp -= 2
     return res
 
+
+def gen_macro(node):
+    global nesting, sp, bfvars
+    assert isinstance(node, NMacroUse)
+
+    if not(node.name.val in bfmacros.keys()):
+        error(f"{node.name.loc}: ERROR: Macro `{node.name.val}` not defined.")
+
+    macro: NMacroDef = bfmacros[node.name.val]
+
+    if len(macro.args) != len(node.args):
+        error(f"{node.name.loc}: ERROR: Macro `{macro.name.val}` takes {len(macro.args)} arguments but got {len(node.args)}.")
+
+    res = ''
+    argc = len(macro.args)
+    _sp = sp
+    for i in range(argc):
+        addr = sp
+        res += gen_expr(node.args[i])
+        bfvars.update({'.'*(nesting+1)+macro.args[i].val: addr})
+    res += gen_scope(macro.body)
+    for _ in range(argc):
+        bfvars.popitem()
+    sp = _sp
+    return res
+
 def gen_statement(node: Statement):
     if isinstance(node, NDeclare):
         return gen_declare(node)
@@ -282,15 +329,16 @@ def gen_statement(node: Statement):
     elif isinstance(node, NMacroDef):
         define_macro(node)
         return ''
+    elif isinstance(node, NMacroUse):
+        return gen_macro(node)
     else:
         assert False, "Unreacheable statement"
 
 def gen_prog(node: NProg, heap: int, formatting=False):
     assert isinstance(node, NProg)
-    global HEAP_CAP, head, hp, sp, bfvars #TODO: I dont like it at all
-    HEAP_CAP = 32
+    global head, hp, sp, bfvars #TODO: I dont like it at all
     head = 0
-    hp = HEAP_CAP*2+1
+    hp = heap*2+1
     sp = hp+1
     bfvars = {}
     code = "\n".join(gen_statement(s) for s in node.stmts)

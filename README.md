@@ -118,12 +118,21 @@ let a;
 {
     let b;
     # can use a and b
-    # let a; #ERROR
 }
 # can use a
 ```
 
-You can write empty scopes. Name shadowing is not alowed.
+You can write empty scopes.
+Name shadowing is alowed:
+```
+let a; # global name `a`
+{
+    let a; # global name `.a`
+    print a; # uses `.a`
+}
+print a; # uses `a`
+```
+
 
 ## IF ELSE
 ```
@@ -148,6 +157,21 @@ while i{
     print '0'+i;
     i = i-1;
 }
+```
+
+## macros
+```
+macro foo(a, b){
+    if a > b{
+        print '>';
+    }else{
+        print '<'; print '=";
+    }
+    print '\n';
+}
+
+foo(2, 3)
+foo('a', 2+2);
 ```
 
 **You can see more examples in `tests` folder**

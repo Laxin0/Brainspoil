@@ -1,0 +1,11 @@
+macro foo(a){
+    print a;
+    a = 54;
+    print b;
+    print '\n';
+}
+let a = 42;
+let b = 69;
+foo(42);
+foo('g');
+ 

@@ -257,13 +257,13 @@ class NWhile(Statement):
 @dataclass
 class NMacroDef(Statement):
     name: Token
-    args: list[str]
+    args: list[Token]
     body: NScope
 
 @dataclass
 class NMacroUse():
     name: Token
-    args: list[Token]
+    args: list[Expr]
 
 @dataclass
 class NProg():

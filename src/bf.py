@@ -61,12 +61,13 @@ class Intepr():
             pc += 1
 
             if self.visual and breakp: #TODO: rewrite this 
+                print(' '.join((str(i).rjust(3, '0')) for i in range(self.head-TAPE_W, self.head+TAPE_W)))
                 print(' '.join(((FILL_C*3) if i >= self.memcap or i < 0 else str(self.mem[i]).rjust(3, '0')) for i in range(self.head-TAPE_W, self.head+TAPE_W)))
                 print(' '*(4*TAPE_W) + ' ^')
                 print(''.join(FILL_C if i >= len(self.code) or i < 0 or self.code[i].isspace() else self.code[i] for i in range(pc-CODE_W, pc+CODE_W)))
                 print(' '*CODE_W + '^')
                 print()
-                inp = input() #TODO: make more interactions
+                inp = input() #TODO: make more interactions {'a': 66, 'b': 67, 'foo.a': 68, 'foo.b': 69, 'foo.c': 70, 'foo.d': 71}
                 if inp == 'b':
                     breakp = False
                 elif inp == 'e':
