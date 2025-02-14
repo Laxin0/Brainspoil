@@ -256,6 +256,7 @@ class NWhile(Statement):
 
 @dataclass
 class NMacroDef(Statement):
+    is_func: bool
     name: Token
     args: list[Token]
     body: NScope

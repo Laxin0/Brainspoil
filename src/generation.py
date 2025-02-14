@@ -299,6 +299,9 @@ def gen_macro(node):
     res = ''
     argc = len(macro.args)
     _sp = sp
+    if macro.is_func:
+        res += pushint(0)
+        bfvars.update({'.'*(nesting+1)+"Result": addr})
     for i in range(argc):
         addr = sp
         res += gen_expr(node.args[i])
@@ -306,7 +309,11 @@ def gen_macro(node):
     res += gen_scope(macro.body)
     for _ in range(argc):
         bfvars.popitem()
+
     sp = _sp
+    if macro.is_func:
+        bfvars.popitem()
+        sp += 1
     return res
 
 def gen_statement(node: Statement):

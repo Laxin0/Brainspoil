@@ -118,7 +118,10 @@ def parse_term(lex: Lexer) -> Expr:
     if lex.next_is(TokenType.INTLIT):
         return NTerm(int(lex.expect(TokenType.INTLIT).val))
     elif lex.next_is(TokenType.IDENT):
-        return NTerm(lex.expect(TokenType.IDENT))
+        if lex.next().val in macros:
+            return parse_macro_use(lex)
+        else:
+            return NTerm(lex.expect(TokenType.IDENT))
     elif lex.next_is(TokenType.PAREN_OP):
         lex.expect(TokenType.PAREN_OP)
         exp = parse_expr(lex, 1)
@@ -214,6 +217,11 @@ def parse_store(lex: Lexer) -> Statement:
 
 def parse_macro_def(lex: Lexer) -> NMacroDef:
     lex.expect(TokenType.KW_MACRO)
+    is_func = False
+    if lex.next_is(TokenType.TIMES):
+        lex.expect(TokenType.TIMES)
+        is_func = True
+
     name = lex.expect(TokenType.IDENT)
     macros.append(name.val)
     lex.expect(TokenType.PAREN_OP)
@@ -227,7 +235,7 @@ def parse_macro_def(lex: Lexer) -> NMacroDef:
 
     body = parse_scope(lex)
 
-    return NMacroDef(name, args, body)
+    return NMacroDef(is_func, name, args, body)
 
 def parse_macro_use(lex: Lexer) -> NMacroUse: # just allocate arguments on the stack like variables with name 'macro.arg'
     name = lex.expect(TokenType.IDENT)
