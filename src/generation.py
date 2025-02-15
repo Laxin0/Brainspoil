@@ -113,6 +113,12 @@ def gen_term(node: NTerm):
         return gen_load(val)
     elif isinstance(val, NNot):
         return gen_not(val)
+    elif isinstance(val, NMacroUse):
+        if not(val.name.val in bfmacros.keys()):
+            error(f"{val.name.loc}: ERROR: Macro `{val.name.val}` not declared.")
+        if not bfmacros[val.name.val].is_func:
+            error(f"{val.name.loc}: ERROR: Macro `{val.name.val}` does not return any value, but used in expression.")
+        return gen_macro(val)
     else:
         assert False, "Unreacheable"
 
@@ -179,6 +185,7 @@ def gen_declare(node: NDeclare):
     if get_nesting(id.val) >= 0: print(f"{id.loc}: WARNING: Variable shadowing. Variable `{id.val}` declared in an outer scope.")
     addr = sp
     bfvars.update({'.'*nesting+id.val: addr})
+    
     sp += 1
     return gen_expr(exp) + store(addr)
 
@@ -289,7 +296,7 @@ def gen_macro(node):
     assert isinstance(node, NMacroUse)
 
     if not(node.name.val in bfmacros.keys()):
-        error(f"{node.name.loc}: ERROR: Macro `{node.name.val}` not defined.")
+        error(f"{node.name.loc}: ERROR: Macro `{node.name.val}` not declared.")
 
     macro: NMacroDef = bfmacros[node.name.val]
 
@@ -299,13 +306,18 @@ def gen_macro(node):
     res = ''
     argc = len(macro.args)
     _sp = sp
+    nesting += 1
     if macro.is_func:
+        addr = sp
         res += pushint(0)
-        bfvars.update({'.'*(nesting+1)+"Result": addr})
+        bfvars.update({'.'*(nesting)+"Result": addr})
+        
     for i in range(argc):
         addr = sp
         res += gen_expr(node.args[i])
-        bfvars.update({'.'*(nesting+1)+macro.args[i].val: addr})
+        bfvars.update({'.'*(nesting)+macro.args[i].val: addr})
+        
+    nesting -= 1
     res += gen_scope(macro.body)
     for _ in range(argc):
         bfvars.popitem()
@@ -337,6 +349,8 @@ def gen_statement(node: Statement):
         define_macro(node)
         return ''
     elif isinstance(node, NMacroUse):
+        if not(node.name.val in bfmacros): error(f"{node.name.loc}: ERROR: Macro `{node.name.val}` not declared.")
+        if bfmacros[node.name.val].is_func: print(f"{node.name.loc}: WARNING: Memory leak: Macro `{node.name.val}` returns value that not used.")
         return gen_macro(node)
     else:
         assert False, "Unreacheable statement"

@@ -20,8 +20,8 @@ def main():
     formatting = False
     print_ast = False
     heap_cap = 32
-    input_file = None
-    out_file = None
+    input_file = None #"./tests/macro_nest.bs" #  "build/code.bs"
+    out_file =None #"build/out.bf"  # 
     args = argv[1:]
 
     while len(args) > 0:
@@ -74,7 +74,7 @@ def main():
             print(f"Can't write into `{out_file}`.")
             exit(1)
 
-        print(f"Code generated successfully. Written in `{out_file}`.")
+        print(f"Code generated successfully. {len(generated_code)} bytes written in `{out_file}`.")
 
     
 

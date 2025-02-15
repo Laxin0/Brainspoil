@@ -1,0 +1,10 @@
+macro* add(a, b){
+    Result = a+b;
+}
+
+macro* z(){}
+
+let a = 42;
+let b = 2 * add(2, 5) + 4; # 18
+let zero = z();
+let c = 24;

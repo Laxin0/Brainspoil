@@ -1,0 +1,18 @@
+macro* add(a, b){
+    Result = a+b;
+}
+
+macro* sub(a, b){
+    Result = a-b;
+}
+
+macro* formula(a, b){
+    Result = sub(a, b) + add(a, b);
+}
+
+let a = 42;
+
+let r = add(3, sub(10, add(1, 2))); # 10
+let r2 = formula(10, 3); # 20
+
+let b = 24;

@@ -118,8 +118,8 @@ def parse_term(lex: Lexer) -> Expr:
     if lex.next_is(TokenType.INTLIT):
         return NTerm(int(lex.expect(TokenType.INTLIT).val))
     elif lex.next_is(TokenType.IDENT):
-        if lex.next().val in macros:
-            return parse_macro_use(lex)
+        if lex.peek().val in macros:
+            return NTerm(parse_macro_use(lex))
         else:
             return NTerm(lex.expect(TokenType.IDENT))
     elif lex.next_is(TokenType.PAREN_OP):

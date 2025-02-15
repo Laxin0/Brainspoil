@@ -1,0 +1,2 @@
+macro foo(){ print '\n'; }
+let a = foo();

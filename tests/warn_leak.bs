@@ -1,0 +1,9 @@
+macro* foo(){
+    Result = 4;
+}
+
+let a = 42;
+foo();
+let b = foo();
+{foo();}
+let c = 24;

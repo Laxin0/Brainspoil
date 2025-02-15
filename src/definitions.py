@@ -205,7 +205,7 @@ class NNot():
 
 @dataclass
 class NTerm(Expr):
-    val: Token|int|NLoad
+    val: Token|int|NLoad|NMacroUse
 
 @dataclass
 class NBinExpr(Expr):
