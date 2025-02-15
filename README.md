@@ -160,6 +160,7 @@ while i{
 ```
 
 ## macros
+Procedures can be written like this
 ```
 macro foo(a, b){
     if a > b{
@@ -172,6 +173,27 @@ macro foo(a, b){
 
 foo(2, 3)
 foo('a', 2+2);
+```
+
+Functions can be written like this:
+```
+macro* add(a, b){ 
+    Result = a + b; 
+}
+
+let a = add(3, 5);
+
+```
+
+If you put `*` after `macro` you can use predefined variable `Result`.
+By default `Result` is 0. It's stores return value.
+
+If you don't use return value, compiler will warn you about that.
+```
+macro* foo(){Result = 42;}
+
+foo() # 42 was returned, but it stored on the stack and can never be used anymore.
+{foo()} # If you need to do this, put in a scope
 ```
 
 **You can see more examples in `tests` folder**
