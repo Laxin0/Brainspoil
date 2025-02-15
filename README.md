@@ -192,8 +192,8 @@ If you don't use return value, compiler will warn you about that.
 ```
 macro* foo(){Result = 42;}
 
-foo() # 42 was returned, but it stored on the stack and can never be used anymore.
-{foo()} # If you need to do this, put in a scope
+foo(); # 42 was returned, but it stored on the stack and can never be used anymore.
+{foo();} # If you need to do this, put in a scope
 ```
 
 **You can see more examples in `tests` folder**
