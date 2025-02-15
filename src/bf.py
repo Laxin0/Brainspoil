@@ -1,5 +1,5 @@
 from sys import argv
-
+from math import log10, ceil
 TAPE_W = 5
 CODE_W = 20
 FILL_C = ' '
@@ -73,9 +73,33 @@ class Intepr():
                 elif inp == 'e':
                     self.visual = False
 
+#      0   1   2   3   4   5   6   7   8   9  
+# 000_ 000 000 000 000 000 000 000 000 000 000
+# 001_ 000 000 000 000 000 000 000 000 000 000
+# 002_ 000 000 000 000 000 000 000 000 000 000
+
 
     def dumpmem(self):
-        print(' '.join(str(n) for n in self.mem))
+        addr_len = 0
+        cap = self.memcap
+        while cap > 0:
+            cap //= 10
+            addr_len += 1
+
+        print('      0   1   2   3   4   5   6   7   8   9')
+        for r in range(ceil(self.memcap/10)):   
+            row = ''
+            current = False
+            for c in range(10):
+                i = r*10+c
+                if i >= self.memcap: break
+                row += str(self.mem[i]).rjust(3, '0')+' '
+                if self.mem[i] != 0: current = True
+            
+            if current:
+                print(f'{r}'.rjust(addr_len-1, '0')+'0: ', end='')
+                print(row)
+            current = False
 
 def usage():
     print ("""
