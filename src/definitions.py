@@ -22,6 +22,7 @@ class TokenType(Enum):
 
     IDENT = iota()
     INTLIT = iota()
+    STRLIT = iota()
     CHAR = iota()
 
     ASSIGN = iota()
@@ -141,6 +142,7 @@ tok_to_str = {
 
     TokenType.IDENT: 'identifier',
     TokenType.INTLIT: 'integer literal',
+    TokenType.STRLIT: 'string literal',
     TokenType.CHAR: 'character constant',
 
     TokenType.ASSIGN: '`=`',
@@ -169,11 +171,12 @@ tok_to_str = {
     TokenType.EOF: 'end of file',
 }
 
-esc_chars = { #TODO: add more or use more elegant algorithm
+esc_chars = { #TODO: add more
     'n': '\n',
     't': '\t',
     '0': '\0',
-    'r': '\r'
+    'r': '\r',
+    '"': '\"'
 }
 
 @dataclass
@@ -182,8 +185,6 @@ class Token():
     val: str|int|None
     loc: str
 
-    # def __str__(self):
-    #     return f"{self.type.name}({self.val}) at {self.loc}"
 
 
 ###########################################################################################################
@@ -216,6 +217,10 @@ class NBinExpr(Expr):
 @dataclass
 class Statement(): pass
 
+@dataclass 
+class NStr(Statement):
+    string: str
+    
 @dataclass
 class NStore(Statement):
     addr: Expr

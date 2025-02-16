@@ -328,6 +328,20 @@ def gen_macro(node):
         sp += 1
     return res
 
+def gen_str(node: NStr):
+    assert isinstance(node, NStr)
+    global sp
+    res = to(sp) + '[-]'
+    val = 0
+    for c in node.string:
+        diff = ord(c) - val
+        if diff >= 0:
+            res += '+'*diff + '.'
+        else:
+            res += '-'*(-1*diff) + '.'
+        val = ord(c)
+    return res
+
 def gen_statement(node: Statement):
     if isinstance(node, NDeclare):
         return gen_declare(node)
@@ -352,6 +366,8 @@ def gen_statement(node: Statement):
         if not(node.name.val in bfmacros): error(f"{node.name.loc}: ERROR: Macro `{node.name.val}` not declared.")
         if bfmacros[node.name.val].is_func: print(f"{node.name.loc}: WARNING: Memory leak: Macro `{node.name.val}` returns value that not used.")
         return gen_macro(node)
+    elif isinstance(node, NStr):
+        return gen_str(node)
     else:
         assert False, "Unreacheable statement"
 

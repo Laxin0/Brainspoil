@@ -20,7 +20,7 @@ def main():
     formatting = False
     print_ast = False
     heap_cap = 32
-    input_file = None #"./tests/macro_nest.bs" #  "build/code.bs"
+    input_file = None # "build/code.bs" #
     out_file =None #"build/out.bf"  # 
     args = argv[1:]
 

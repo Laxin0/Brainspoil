@@ -1,0 +1,29 @@
+macro * div(a, b){ # a // b
+    while a > b{
+        a = a - b;
+        Result = Result + 1;
+    }
+}
+
+macro * mod(a, b){
+    while a 
+    = b{
+        a = a - b;
+    }
+    Result = a;
+}
+
+macro print_n(n){
+    print('0'+div(n, 100));
+    n = mod(n, 100);
+    print('0'+div(n,10));
+    n = mod(n, 10);
+    print('0'+n);
+    print '\n';
+}
+
+let i = 0;
+while (255 - i) >= 0{
+    i = i+1;
+    print_n(i);
+}

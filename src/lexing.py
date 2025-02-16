@@ -34,7 +34,7 @@ class Lexer():
                     buff += c
                     self.index += 1
                     self.col += 1
-                    if self.index >= len(self.src): return Token(TokenType.EOF, None, self.loc())
+                    if self.index >= len(self.src): break
                     c = self.src[self.index]
                 if buff in keywords.keys():
                     return Token(keywords[buff], None, loc)
@@ -48,7 +48,7 @@ class Lexer():
                     buff += c
                     self.index += 1
                     self.col += 1
-                    if self.index >= len(self.src): return Token(TokenType.EOF, None, self.loc())
+                    if self.index >= len(self.src): break
                     c = self.src[self.index]
                 return Token(TokenType.INTLIT, buff, loc)
             
@@ -72,23 +72,45 @@ class Lexer():
                 self.col = 1
                 self.index += 1
                 self.line += 1
-            elif c == '\'': #TODO: make better
+            elif c == '\'': #TODO: make better. It's so bad omg. 
                 loc = self.loc()
                 self.index += 1; self.col += 1
+                if self.index >= len(self.src): error(f"{self.loc()}: ERROR: Unexpected end of file.")
                 char = ''
                 current = self.src[self.index]
                 if current == '\\':
                     self.index += 1; self.col += 1
-                    if self.src[self.index] == '\n': error(f"{self.loc()}: ERROR: Character constant must be in the one line.")
+                    if self.index >= len(self.src): error(f"{self.loc()}: ERROR: Unexpected end of file.")
+                    if self.src[self.index] == '\n': error(f"{self.loc()}: ERROR: Character constant must be on one line.")
                     if not(self.src[self.index] in esc_chars.keys()): error(f"{self.loc()}: ERROR: Unknown escape character `{self.src[self.index]}`")
                     char = esc_chars[self.src[self.index]]
                 elif current == '\n': error(f"{self.loc()}: ERROR: Character constant must be in the one line.")
                 else:
                     char = current
                 self.index += 1; self.col += 1
+                if self.index >= len(self.src): error(f"{self.loc()}: ERROR: Unexpected end of file.")
                 if self.src[self.index] != '\'': error(f"{self.loc()}: ERROR: Expected closing `'` in character constant, but found `{self.src[self.index]}`")
                 self.index += 1; self.col += 1
                 return Token(TokenType.CHAR, char, loc)
+            elif c == '"':
+                loc = self.loc()
+                self.index += 1; self.col += 1
+                if self.index >= len(self.src): error(f"{self.loc()}: ERROR: Unexpected end of file.")
+                buff = ""
+                while self.src[self.index] != '"':
+                    if self.src[self.index] == '\n': error(f"{self.loc}: ERROR: String literal must be on one line.")
+                    if self.src[self.index] == '\\':
+                        self.index += 1; self.col += 1
+                        if self.index >= len(self.src): error(f"{self.loc()}: ERROR: Unexpected end of file.")
+                        if not(self.src[self.index] in esc_chars.keys()): error(f"{self.loc()}: ERROR: Unknown escape character `{self.src[self.index]}`")
+                        buff += esc_chars[self.src[self.index]]
+                    else:
+                        buff += self.src[self.index]
+                    self.index += 1; self.col += 1
+                    if self.index >= len(self.src): error(f"{self.loc()}: ERROR: Unexpected end of file.")
+                self.index += 1; self.col += 1
+                return Token(TokenType.STRLIT, buff, loc)
+
             else:
                 error(f"{self.loc()}: ERROR: Invalid character `{c}`")
 
@@ -99,7 +121,6 @@ class Lexer():
         return self.buffer
 
     def expect(self, ttype: TokenType) -> Token:
-        #if ttype == TokenType.PAREN_CL and self.buffer.type == TokenType.INTLIT: raise ValueError()
         if self.buffer.type == ttype:
             t = self.buffer
             self.buffer = self.next()
@@ -113,6 +134,11 @@ class Lexer():
         return cur
 
 macros = []
+
+def parse_string(lex: Lexer) -> NStr:
+    string = lex.expect(TokenType.STRLIT).val
+    lex.expect(TokenType.SEMI)
+    return NStr(string)
 
 def parse_term(lex: Lexer) -> Expr:
     if lex.next_is(TokenType.INTLIT):
@@ -275,6 +301,8 @@ def parse_statement(lex: Lexer) -> Statement:
         return parse_store(lex)
     elif lex.next_is(TokenType.KW_MACRO):
         return parse_macro_def(lex)
+    elif lex.next_is(TokenType.STRLIT):
+        return parse_string(lex)
     else:
         # TODO: rewitre
         error(f"{lex.peek().loc}: ERROR: Expected {tok_to_str[TokenType.KW_LET]} " +\
