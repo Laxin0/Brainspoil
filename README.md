@@ -134,7 +134,7 @@ print a; # uses `a`
 ```
 
 
-## IF ELSE
+## if else
 ```
 let a = 1;
 if a {
@@ -194,6 +194,15 @@ macro* foo(){Result = 42;}
 
 foo(); # 42 was returned, but it stored on the stack and can never be used anymore.
 {foo();} # If you need to do this, put in a scope
+```
+
+## Experimental
+**Experimantal features that can be deprecated in future**
+
+### strings
+Just put string literal as statement for printing it:
+```
+"Hello world\n";
 ```
 
 **You can see more examples in `tests` folder**
