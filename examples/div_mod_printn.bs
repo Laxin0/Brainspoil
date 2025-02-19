@@ -6,8 +6,7 @@ macro * div(a, b){ # a // b
 }
 
 macro * mod(a, b){
-    while a 
-    = b{
+    while a >= b{
         a = a - b;
     }
     Result = a;

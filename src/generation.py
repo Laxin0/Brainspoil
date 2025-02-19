@@ -1,9 +1,8 @@
 from definitions import *
 #_A_A0...N
 
-HEAP_CAP = 32
-head = 0
-hp = HEAP_CAP*2+1
+MAX_NESTING = 100
+head = hp = sp = 0
 sp = hp+1
 bfvars = {}
 bfmacros = {}
@@ -294,7 +293,8 @@ def gen_store(node):
 def gen_macro(node):
     global nesting, sp, bfvars
     assert isinstance(node, NMacroUse)
-
+    if nesting > MAX_NESTING:
+        error(f"{node.name.loc}: ERROR: Maximum nesting level exeeded while generating `{node.name.val}` macro. Macros don't support recursion!")
     if not(node.name.val in bfmacros.keys()):
         error(f"{node.name.loc}: ERROR: Macro `{node.name.val}` not declared.")
 
