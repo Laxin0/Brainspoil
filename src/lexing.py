@@ -142,8 +142,8 @@ def parse_string(lex: Lexer) -> NStr:
 
 def parse_term(lex: Lexer) -> Expr:
     if lex.next_is(TokenType.INTLIT):
-        return NTerm(int(lex.expect(TokenType.INTLIT).val))
-    elif lex.next_is(TokenType.IDENT):
+        return NTerm(lex.expect(TokenType.INTLIT))
+    elif lex.next_is(TokenType.IDENT): #TODO: think
         if lex.peek().val in macros:
             return NTerm(parse_macro_use(lex))
         else:
@@ -152,13 +152,13 @@ def parse_term(lex: Lexer) -> Expr:
         lex.expect(TokenType.PAREN_OP)
         exp = parse_expr(lex, 1)
         lex.expect(TokenType.PAREN_CL)
-        return exp
-    elif lex.next_is(TokenType.AT):
+        return exp #TODO: wrap in NTerm
+    elif lex.next_is(TokenType.AT): #TODO: deprecate
         lex.expect(TokenType.AT)
         exp = parse_term(lex)
         return NTerm(NLoad(exp))
     elif lex.next_is(TokenType.CHAR):
-        return NTerm(ord(lex.expect(TokenType.CHAR).val))
+        return NTerm(lex.expect(TokenType.CHAR))
     elif lex.next_is(TokenType.NOT):
         lex.expect(TokenType.NOT)
         t = parse_term(lex)
@@ -195,7 +195,7 @@ def parse_declare(lex: Lexer) -> NDeclare:
         return NDeclare(id, exp)
     elif lex.next_is(TokenType.SEMI):
         _ = lex.expect(TokenType.SEMI)
-        return NDeclare(id, NTerm(0))
+        return NDeclare(id, None)
     error(f"{lex.peek().loc}: ERROR: Expected {tok_to_str[TokenType.ASSIGN]} or {tok_to_str[TokenType.SEMI]} but found {tok_to_str[lex.peek().type]}")
 
 def parse_assign(lex: Lexer) -> NAssign:

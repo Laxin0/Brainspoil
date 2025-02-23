@@ -1,5 +1,4 @@
-# Grammar
-
+# Gramar
 NProg     ::= [Statement]
 Statement ::= NDeclare
             | NAssign
@@ -8,35 +7,39 @@ Statement ::= NDeclare
             | NScope
             | NIfElse
             | NWhile
-            | NStore
+            | ~~NStore~~
+            | NMacroDef
+            | NmacroUse
 
 NScope    ::= `{` [Statement] `}`
 
-Expr      ::= Term 
-            | BinExpr
+Expr      ::= NTerm 
+            | NBinExpr
 
-# TODD: maybe replace Expr to Term where it is
+NTerm     ::= Token(int|char|str)
+			| *NIndex*
+            | `(` Expr `)`
+            | ~~NLoad~~
+            | NNot
+            | NMacroUse
+            
 
-Term      ::= id
-            | int
-            | char
-            | (Expr)
-            | NLoad
-
-BinExpr   ::= Expr BinOp Expr
+NBinExpr   ::= Expr BinOp Expr
 
 NIfElse   ::= `if` Expr NScope {`else` NScope}
 
 NWhile    ::= `while` Expr NScope  
 
-NDeclare  ::= `let` id {`=` Expr} `;`
-NAssign   ::= id = Expr `;`
+NDeclare  ::= `let` Token(str) | *NIndex* {`=` Expr} `;`
+NAssign   ::= Token(str) | *NIndex* = Expr `;`
 NPrint    ::= `print` Expr `;`
-NRead     ::= `read` id `;`
-
-NLoad     ::= `@` Term
+NRead     ::= `read` Token(str) | *NIndex* `;`
+*NIndex   ::= Token(str) `[` Expr `]`*
+~~NLoad     ::= `@` Term~~
 NNot      ::= `!` Term
-NStore    ::= `@` Term `=` Expr `;`
+~~NStore    ::= `@` Term `=` Expr `;`~~
+
+# My thoughts (Don't read)
 
 !a
 
@@ -74,9 +77,6 @@ a b
 ]
 >>[-<<+>>]<<
 
-
-
-# Macros
 
 MULTIPLICATION = >>[-]>[-]<<<[->>+<<]>[->[-<<+>>>+<]>[-<+>]<<]<
 

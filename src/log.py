@@ -1,5 +1,5 @@
 from lexing import Lexer, parse_prog
-from generation import gen_prog, HEAP_CAP
+from generation import gen_prog
 from bf import Intepr
 import sys
 from pprint import pprint

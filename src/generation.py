@@ -94,21 +94,30 @@ def get_nesting(name: str) -> int:
             return n
     return -1
 
+def gen_term_from_tok(tok: Token):
+    global bfvars
+    assert isinstance(tok, Token)
+    match tok.type:
+        case TokenType.INTLIT:
+            return pushint(int(tok.val))
+        case TokenType.CHAR:
+            return pushint(ord(tok.val))
+        case TokenType.IDENT:
+            name = tok.val
+            nest = get_nesting(name)
+            if nest < 0:
+                error(f"{tok.loc}: ERROR: Variable `{tok.val}` not declared.")
+            return top(bfvars['.'*nest+name])
+        case _:
+            assert False, "Unreachable"
+
 def gen_term(node: NTerm):
     global nesting
     assert isinstance(node, NTerm)
     val = node.val
     if isinstance(val, Token):
-        assert val.type == TokenType.IDENT #TODO It will search variable in local scope or global. local name may be nested!!!!
-
-        name = val.val
-        nest = get_nesting(name)
-        if nest < 0:
-            error(f"{val.loc}: ERROR: Variable `{val.val}` not declared.")
-        return top(bfvars['.'*nest+name])
-    elif isinstance(val, int):
-        return pushint(val)
-    elif isinstance(val, NLoad):
+        return gen_term_from_tok(val)
+    elif isinstance(val, NLoad): #TODO: deprecate
         return gen_load(val)
     elif isinstance(val, NNot):
         return gen_not(val)
@@ -119,7 +128,7 @@ def gen_term(node: NTerm):
             error(f"{val.name.loc}: ERROR: Macro `{val.name.val}` does not return any value, but used in expression.")
         return gen_macro(val)
     else:
-        assert False, "Unreacheable"
+        assert False, f"Unreacheable {val.__class__}"
 
 def gen_binop(op: BinOpKind):
     global head
@@ -186,7 +195,12 @@ def gen_declare(node: NDeclare):
     bfvars.update({'.'*nesting+id.val: addr})
     
     sp += 1
-    return gen_expr(exp) + store(addr)
+    gened_expr: str
+    if exp == None:
+        gened_expr = pushint(0)
+    else:
+        gened_expr = gen_expr(exp)
+    return gened_expr + store(addr)
 
 def gen_assign(node: NAssign):
     assert isinstance(node, NAssign)
