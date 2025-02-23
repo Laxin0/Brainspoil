@@ -37,6 +37,7 @@ class TokenType(Enum):
     CURL_OP = iota()
     CURL_CL = iota()
     SEMI = iota()
+    COLON = iota()
     AND = iota()
     OR = iota()
     AT = iota()
@@ -109,6 +110,7 @@ keywords = {
 
 puncts = {
     ";": TokenType.SEMI,
+    ":": TokenType.COLON,
     "=": TokenType.ASSIGN,
     "(": TokenType.PAREN_OP,
     ")": TokenType.PAREN_CL,
@@ -157,6 +159,7 @@ tok_to_str = {
     TokenType.CURL_OP: '`{`',
     TokenType.CURL_CL: '`}`',
     TokenType.SEMI: '`;`',
+    TokenType.COLON: '`:`',
     TokenType.AND: '`&&`',
     TokenType.OR: '`||`',
     TokenType.EQ: '`==`',
