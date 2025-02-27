@@ -150,27 +150,31 @@ def parse_string(lex: Lexer) -> NStr:
 
 def parse_term(lex: Lexer) -> Expr:
     if lex.next_is(TokenType.INTLIT):
-        return NTerm(lex.expect(TokenType.INTLIT))
+        tok = lex.expect(TokenType.INTLIT)
+        return NTerm(tok, tok.loc)
     elif lex.next_is(TokenType.IDENT): #TODO: think
-        if lex.peek().val in macros:
-            return NTerm(parse_macro_use(lex))
+        ident = lex.peek()
+        if ident.val in macros:
+            return NTerm(parse_macro_use(lex), ident.loc)
         else:
-            return NTerm(lex.expect(TokenType.IDENT))
+            return NTerm(lex.expect(TokenType.IDENT), ident.loc)
     elif lex.next_is(TokenType.PAREN_OP):
-        lex.expect(TokenType.PAREN_OP)
+        tok = lex.expect(TokenType.PAREN_OP)
         exp = parse_expr(lex, 1)
         lex.expect(TokenType.PAREN_CL)
+        exp.loc = tok.loc
         return exp #TODO: wrap in NTerm
     elif lex.next_is(TokenType.AT): #TODO: deprecate
-        lex.expect(TokenType.AT)
+        tok = lex.expect(TokenType.AT)
         exp = parse_term(lex)
-        return NTerm(NLoad(exp))
+        return NTerm(NLoad(exp), tok.loc)
     elif lex.next_is(TokenType.CHAR):
-        return NTerm(lex.expect(TokenType.CHAR))
+        tok = lex.expect(TokenType.CHAR)
+        return NTerm(tok, tok.loc)
     elif lex.next_is(TokenType.NOT):
-        lex.expect(TokenType.NOT)
+        tok = lex.expect(TokenType.NOT)
         t = parse_term(lex)
-        return NTerm(NNot(t))
+        return NTerm(NNot(t), tok.loc)
     else:
         error(f"{lex.peek().loc}: ERROR: Expected {tok_to_str[TokenType.INTLIT]}, {tok_to_str[TokenType.IDENT]} or {tok_to_str[TokenType.PAREN_OP]} " +\
               f" but found {tok_to_str[lex.peek().type]}")
@@ -188,7 +192,7 @@ def parse_expr(lex: Lexer, min_prec) -> Expr:
 
         rhs = parse_expr(lex, next_min_prec)
 
-        lhs = NBinExpr(lhs, rhs, op)
+        lhs = NBinExpr(lhs, rhs, op, None)
 
     return lhs
 
@@ -197,15 +201,14 @@ def parse_declare(lex: Lexer) -> NDeclare:
     _ = lex.expect(TokenType.KW_LET)
     id = lex.expect(TokenType.IDENT)
     vtype = parse_type(lex)
-    print(vtype) # DEBUG
     if lex.next_is(TokenType.ASSIGN):
         _ = lex.expect(TokenType.ASSIGN)
         exp = parse_expr(lex, 1)
         _ = lex.expect(TokenType.SEMI)
-        return NDeclare(id, exp)
+        return NDeclare(id, vtype, exp)
     elif lex.next_is(TokenType.SEMI):
         _ = lex.expect(TokenType.SEMI)
-        return NDeclare(id, None)
+        return NDeclare(id, vtype, None)
     error(f"{lex.peek().loc}: ERROR: Expected {tok_to_str[TokenType.ASSIGN]} or {tok_to_str[TokenType.SEMI]} but found {tok_to_str[lex.peek().type]}")
 
 def parse_assign(lex: Lexer) -> NAssign:
@@ -258,30 +261,27 @@ def parse_macro_def(lex: Lexer) -> NMacroDef:
         lex.expect(TokenType.TIMES)
         is_func = True
 
-    name = lex.expect(TokenType.IDENT)
-    macros.append(name.val)
+    macro_name = lex.expect(TokenType.IDENT)
+    macros.append(macro_name.val)
     lex.expect(TokenType.PAREN_OP)
     args = []
     if lex.next_is(TokenType.IDENT):
         name = lex.expect(TokenType.IDENT)
         arg_type = parse_type(lex)
-        print(arg_type) # DEBUG
-        args.append(name)
+        args.append((name, arg_type))
     while lex.next_is(TokenType.COMMA):
         lex.expect(TokenType.COMMA)
         name = lex.expect(TokenType.IDENT)
         arg_type = parse_type(lex)
-        print(arg_type) # DEBUG
-        args.append(name)
+        args.append((name, arg_type))
     lex.expect(TokenType.PAREN_CL)
 
     ret_type = ''
     if is_func:
         ret_type = parse_type(lex)
-    print(ret_type) # DEBUG
     body = parse_scope(lex)
 
-    return NMacroDef(is_func, name, args, body)
+    return NMacroDef(is_func, macro_name, args, ret_type, body)
 
 def parse_macro_use(lex: Lexer) -> NMacroUse: # just allocate arguments on the stack like variables with name 'macro.arg'
     name = lex.expect(TokenType.IDENT)

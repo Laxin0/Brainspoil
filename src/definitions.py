@@ -197,7 +197,7 @@ class Token():
 ###########################################################################################################
 
 @dataclass
-class Expr(): pass
+class Expr(): pass #TODO add loc field for NBinExpr and NTerm ???
 
 @dataclass
 class NLoad():
@@ -209,13 +209,15 @@ class NNot():
 
 @dataclass
 class NTerm(Expr):
-    val: Token|int|NLoad|NMacroUse
+    val: Token|NLoad|NMacroUse
+    loc: str
 
 @dataclass
 class NBinExpr(Expr):
     lhs: Expr
     rhs: Expr
     op: BinOpKind
+    loc: str
 
 @dataclass
 class Statement(): pass
@@ -236,6 +238,7 @@ class NScope(Statement):
 @dataclass
 class NDeclare(Statement):
     id: Token
+    type: str
     val: Expr
 
 @dataclass
@@ -267,6 +270,7 @@ class NMacroDef(Statement):
     is_func: bool
     name: Token
     args: list[Token]
+    type: str
     body: NScope
 
 @dataclass

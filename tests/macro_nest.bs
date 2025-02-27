@@ -1,12 +1,12 @@
-macro* add(a, b){
+macro* add(a, b): u8{
     Result = a+b;
 }
 
-macro* sub(a, b){
+macro* sub(a, b): u8{
     Result = a-b;
 }
 
-macro* formula(a, b){
+macro* formula(a, b): u8{
     Result = sub(a, b) + add(a, b);
 }
 

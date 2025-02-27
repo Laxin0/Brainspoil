@@ -10,7 +10,34 @@ nesting = 0
 # TODO: make comments and formating optional
 
 cmp = "[-]>[-]<<<[->>+>+<<<]>>>[-<<<+>>>][-]>[-]<<<[->>+>+<<<]>>>[-<<<+>>>][-]<<[>[>+<[-]]<[-]]>>[-<<+>>]<<[<<->->>[-]>[-]<<<<[->>>+>+<<<<]>>>>[-<<<<+>>>>][-]>[-]<<<<[->>>+>+<<<<]>>>>[-<<<<+>>>>][-]<<[>[>+<[-]]<[-]]>>[-<<+>>]<<<[-]>[-<+>]<]"
- 
+
+def get_macro(node: NMacroUse):
+    assert isinstance(node, NMacroUse)
+    if node.name.val in bfmacros.keys():
+        return bfmacros[node.name.val]
+    error(f"{node.name.loc}: ERROR: Macro `{node.name.val}` not defined.")
+
+def get_var(id: Token):
+    assert isinstance(id, Token) and id.type == TokenType.IDENT
+    nest = get_nesting(id.val)
+    if nest >= 0:
+        return bfmacros[nest*"."+id.val]
+    error(f"{id.loc}: ERROR: Variable `{id.val}` not declared.")
+
+def check_type(expr: Expr, type: str):
+    got_t = ''
+    if isinstance(expr, NBinExpr): got_t = "u8"
+    elif isinstance(expr, NTerm):
+        if isinstance(expr.val, Token):
+            if expr.val.type in (TokenType.CHAR, TokenType.INTLIT): got_t = "u8"
+            elif expr.val.type == TokenType.IDENT: got_t = get_var(expr.val)[1]
+            else: assert False, "Unreachable"
+        elif isinstance(expr.val, NNot): got_t = "u8"
+        elif isinstance(expr.val, NMacroUse): got_t = get_macro(expr.val).type
+        else: assert False, "Unreachable"
+    else: False, "Unreachable"
+    if got_t != type:
+        error(f"{expr.loc}: ERROR: Mismatched types. Expected `{type}` but got `{got_t}`.")
 
 def define_macro(macro: NMacroDef):
     if macro.name.val in bfmacros.keys():
@@ -107,7 +134,7 @@ def gen_term_from_tok(tok: Token):
             nest = get_nesting(name)
             if nest < 0:
                 error(f"{tok.loc}: ERROR: Variable `{tok.val}` not declared.")
-            return top(bfvars['.'*nest+name])
+            return top(bfvars['.'*nest+name][0])
         case _:
             assert False, "Unreachable"
 
@@ -185,14 +212,14 @@ def gen_expr(node: Expr):
 def gen_declare(node: NDeclare):
     global bfvars, sp, nesting
     assert isinstance(node, NDeclare)
-    id, exp = node.id, node.val
+    id, exp, vtype = node.id, node.val, node.type
 
     if '.'*nesting+id.val in bfvars.keys():
         error(f"{id.loc}: ERROR: Variable `{id.val}` already declared.")
 
     if get_nesting(id.val) >= 0: print(f"{id.loc}: WARNING: Variable shadowing. Variable `{id.val}` declared in an outer scope.")
     addr = sp
-    bfvars.update({'.'*nesting+id.val: addr})
+    bfvars.update({'.'*nesting+id.val: (addr, vtype)})
     
     sp += 1
     gened_expr: str
@@ -210,7 +237,7 @@ def gen_assign(node: NAssign):
     if nest < 0:
         error(f"{id.loc}: ERROR: Variable `{id.val}` not declared.")
     name = '.'*nest+id.val
-    return gen_expr(node.val) + store(bfvars[name])
+    return gen_expr(node.val) + store(bfvars[name][0])
 
 def gen_print(node: NPrint):
     global sp
@@ -229,7 +256,7 @@ def gen_read(node: NPrint):
     name = '.'*nest+id.val
     res = to(sp)+','
     sp += 1 
-    res += store(bfvars[name])
+    res += store(bfvars[name][0])
     return res+'\n'
 
 def gen_scope(node: NScope):
@@ -324,12 +351,12 @@ def gen_macro(node):
     if macro.is_func:
         addr = sp
         res += pushint(0)
-        bfvars.update({'.'*(nesting)+"Result": addr})
+        bfvars.update({'.'*(nesting)+"Result": (addr, macro.type)})
         
     for i in range(argc):
         addr = sp
         res += gen_expr(node.args[i])
-        bfvars.update({'.'*(nesting)+macro.args[i].val: addr})
+        bfvars.update({'.'*(nesting)+macro.args[i][0].val: (addr, None)})
         
     nesting -= 1
     res += gen_scope(macro.body)

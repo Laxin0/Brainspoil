@@ -41,6 +41,29 @@ NNot      ::= `!` Term
 
 # My thoughts (Don't read)
 
+
+
+if binop:
+    error({at}: exp {}type but got Binexpr)
+
+let a: Vec = (9 + 8);
+
+assert_type(Term, exp_type):
+    type = ...
+    if type != exp: error("expected {exp_type} but got {type}")
+
+
+BinExpr -> u8
+Term -> Any
+
+GenBinExpr: left.type == u8 and right.type == u8
+         assert_type(lhs, u8)
+        error(only u8 in bin expr)
+         assert_type(rhs, u8)
+
+GenDecl(a, Vec, binexpr):
+    assert_type(binexpr, Vec)
+
 !a
 
 a and b => i if all 1. 0 if any 0
