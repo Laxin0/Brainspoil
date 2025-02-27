@@ -11,21 +11,22 @@ nesting = 0
 
 cmp = "[-]>[-]<<<[->>+>+<<<]>>>[-<<<+>>>][-]>[-]<<<[->>+>+<<<]>>>[-<<<+>>>][-]<<[>[>+<[-]]<[-]]>>[-<<+>>]<<[<<->->>[-]>[-]<<<<[->>>+>+<<<<]>>>>[-<<<<+>>>>][-]>[-]<<<<[->>>+>+<<<<]>>>>[-<<<<+>>>>][-]<<[>[>+<[-]]<[-]]>>[-<<+>>]<<<[-]>[-<+>]<]"
 
-def get_macro(node: NMacroUse):
+def get_macro(node: NMacroUse) -> NMacroDef:
     assert isinstance(node, NMacroUse)
     if node.name.val in bfmacros.keys():
         return bfmacros[node.name.val]
     error(f"{node.name.loc}: ERROR: Macro `{node.name.val}` not defined.")
 
-def get_var(id: Token):
-    assert isinstance(id, Token) and id.type == TokenType.IDENT
+def get_var(id: Token) -> tuple[int, str]:
+    assert isinstance(id, Token) and id.type == TokenType.IDENT, f"got: {id}"
     nest = get_nesting(id.val)
-    if nest >= 0:
-        return bfmacros[nest*"."+id.val]
-    error(f"{id.loc}: ERROR: Variable `{id.val}` not declared.")
+    if nest < 0:
+        error(f"{id.loc}: ERROR: Variable `{id.val}` not declared.")
+    return bfvars[("."*nest)+id.val]
+    
 
 def check_type(expr: Expr, type: str):
-    got_t = ''
+    got_t = 'None type'
     if isinstance(expr, NBinExpr): got_t = "u8"
     elif isinstance(expr, NTerm):
         if isinstance(expr.val, Token):
@@ -34,7 +35,8 @@ def check_type(expr: Expr, type: str):
             else: assert False, "Unreachable"
         elif isinstance(expr.val, NNot): got_t = "u8"
         elif isinstance(expr.val, NMacroUse): got_t = get_macro(expr.val).type
-        else: assert False, "Unreachable"
+        elif isinstance(expr.val, NLoad): got_t = "u8"
+        else: assert False, f"Unreachable got {expr.val}"
     else: False, "Unreachable"
     if got_t != type:
         error(f"{expr.loc}: ERROR: Mismatched types. Expected `{type}` but got `{got_t}`.")
@@ -108,6 +110,7 @@ def gen_not(node: NNot):
     res += to(sp)
     res += "[-]+"
     sp += 1
+    check_type(node.expr, "u8")
     res += gen_term(node.expr)
     res += to(addr)
     res += ">[<[-]>[-]]<"
@@ -130,11 +133,7 @@ def gen_term_from_tok(tok: Token):
         case TokenType.CHAR:
             return pushint(ord(tok.val))
         case TokenType.IDENT:
-            name = tok.val
-            nest = get_nesting(name)
-            if nest < 0:
-                error(f"{tok.loc}: ERROR: Variable `{tok.val}` not declared.")
-            return top(bfvars['.'*nest+name][0])
+            return top(get_var(tok)[0])
         case _:
             assert False, "Unreachable"
 
@@ -149,9 +148,8 @@ def gen_term(node: NTerm):
     elif isinstance(val, NNot):
         return gen_not(val)
     elif isinstance(val, NMacroUse):
-        if not(val.name.val in bfmacros.keys()):
-            error(f"{val.name.loc}: ERROR: Macro `{val.name.val}` not declared.")
-        if not bfmacros[val.name.val].is_func:
+        macro = get_macro(val)
+        if not macro.is_func: #TODO: This code may be dead
             error(f"{val.name.loc}: ERROR: Macro `{val.name.val}` does not return any value, but used in expression.")
         return gen_macro(val)
     else:
@@ -194,6 +192,8 @@ def gen_binop(op: BinOpKind):
 def gen_bin_expr(node: NBinExpr):
     global sp
     assert isinstance(node, NBinExpr)
+    check_type(node.lhs, "u8")
+    check_type(node.rhs, "u8")
     res = \
     gen_expr(node.lhs) +\
     gen_expr(node.rhs) +\
@@ -213,6 +213,7 @@ def gen_declare(node: NDeclare):
     global bfvars, sp, nesting
     assert isinstance(node, NDeclare)
     id, exp, vtype = node.id, node.val, node.type
+    if vtype == None: vtype = "u8" # Think: Auto / u8
 
     if '.'*nesting+id.val in bfvars.keys():
         error(f"{id.loc}: ERROR: Variable `{id.val}` already declared.")
@@ -224,8 +225,10 @@ def gen_declare(node: NDeclare):
     sp += 1
     gened_expr: str
     if exp == None:
+        if vtype != "u8": error(f"{id.loc}: ERROR: Variable of not `u8` type must be initialized explicitly.")
         gened_expr = pushint(0)
     else:
+        check_type(exp, vtype)
         gened_expr = gen_expr(exp)
     return gened_expr + store(addr)
 
@@ -233,15 +236,14 @@ def gen_assign(node: NAssign):
     assert isinstance(node, NAssign)
     id = node.id
 
-    nest = get_nesting(id.val)
-    if nest < 0:
-        error(f"{id.loc}: ERROR: Variable `{id.val}` not declared.")
-    name = '.'*nest+id.val
-    return gen_expr(node.val) + store(bfvars[name][0])
+    var = get_var(id)
+    check_type(node.val, var[1])
+    return gen_expr(node.val) + store(var[0])
 
 def gen_print(node: NPrint):
     global sp
     assert isinstance(node, NPrint)
+    check_type(node.expr, "u8")
     res = gen_expr(node.expr)+to(sp-1)+"."
     sp -= 1
     return res+'\n'
@@ -250,13 +252,10 @@ def gen_read(node: NPrint):
     global sp
     assert isinstance(node, NRead)
     id = node.id
-    nest = get_nesting(id.val)
-    if nest < 0:
-        error(f"{id.loc}: ERROR: Variable `{id.val}` not declared.")
-    name = '.'*nest+id.val
+    var = get_var(id)
     res = to(sp)+','
     sp += 1 
-    res += store(bfvars[name][0])
+    res += store(var[0]) #TODO: optimize
     return res+'\n'
 
 def gen_scope(node: NScope):
@@ -279,6 +278,7 @@ def gen_ifelse(node: NIfElse): #TODO rewite normal way!!!
     assert isinstance(node, NIfElse)
     res = ''
     global sp
+    check_type(node.cond, "u8")
     res += gen_expr(node.cond)
     cond = sp-1
     flag = sp
@@ -296,6 +296,7 @@ def gen_while(node: NWhile):
     assert isinstance(node, NWhile)
     global sp
     cond_addr = sp
+    check_type(node.cond, "u8")
     res = gen_expr(node.cond)
     res += f"{to(cond_addr)}[\n{gen_scope(node.body)}\n{gen_expr(node.cond)}{store(cond_addr)}{to(cond_addr)}]"
     sp -= 1
@@ -336,11 +337,8 @@ def gen_macro(node):
     assert isinstance(node, NMacroUse)
     if nesting > MAX_NESTING:
         error(f"{node.name.loc}: ERROR: Maximum nesting level exeeded while generating `{node.name.val}` macro. Macros don't support recursion!")
-    if not(node.name.val in bfmacros.keys()):
-        error(f"{node.name.loc}: ERROR: Macro `{node.name.val}` not declared.")
 
-    macro: NMacroDef = bfmacros[node.name.val]
-
+    macro = get_macro(node)
     if len(macro.args) != len(node.args):
         error(f"{node.name.loc}: ERROR: Macro `{macro.name.val}` takes {len(macro.args)} arguments but got {len(node.args)}.")
 
@@ -350,13 +348,14 @@ def gen_macro(node):
     nesting += 1
     if macro.is_func:
         addr = sp
-        res += pushint(0)
+        res += pushint(0) #TODO: Result type can be not u8
         bfvars.update({'.'*(nesting)+"Result": (addr, macro.type)})
         
     for i in range(argc):
         addr = sp
+        check_type(node.args[i], macro.args[i][1])
         res += gen_expr(node.args[i])
-        bfvars.update({'.'*(nesting)+macro.args[i][0].val: (addr, None)})
+        bfvars.update({'.'*(nesting)+macro.args[i][0].val: (addr, macro.args[i][1])})
         
     nesting -= 1
     res += gen_scope(macro.body)
@@ -404,8 +403,8 @@ def gen_statement(node: Statement):
         define_macro(node)
         return ''
     elif isinstance(node, NMacroUse):
-        if not(node.name.val in bfmacros): error(f"{node.name.loc}: ERROR: Macro `{node.name.val}` not declared.")
-        if bfmacros[node.name.val].is_func: print(f"{node.name.loc}: WARNING: Memory leak: Macro `{node.name.val}` returns value that not used.")
+        macro = get_macro(node)
+        if macro.is_func: print(f"{node.name.loc}: WARNING: Memory leak: Macro `{node.name.val}` returns value that not used.")
         return gen_macro(node)
     elif isinstance(node, NStr):
         return gen_str(node)

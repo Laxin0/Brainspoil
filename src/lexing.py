@@ -192,7 +192,7 @@ def parse_expr(lex: Lexer, min_prec) -> Expr:
 
         rhs = parse_expr(lex, next_min_prec)
 
-        lhs = NBinExpr(lhs, rhs, op, None)
+        lhs = NBinExpr(lhs, rhs, op, lhs.loc)
 
     return lhs
 
@@ -267,16 +267,16 @@ def parse_macro_def(lex: Lexer) -> NMacroDef:
     args = []
     if lex.next_is(TokenType.IDENT):
         name = lex.expect(TokenType.IDENT)
-        arg_type = parse_type(lex)
+        arg_type = parse_type(lex) or "u8"
         args.append((name, arg_type))
     while lex.next_is(TokenType.COMMA):
         lex.expect(TokenType.COMMA)
         name = lex.expect(TokenType.IDENT)
-        arg_type = parse_type(lex)
+        arg_type = parse_type(lex) or "u8"
         args.append((name, arg_type))
     lex.expect(TokenType.PAREN_CL)
 
-    ret_type = ''
+    ret_type = None
     if is_func:
         ret_type = parse_type(lex)
     body = parse_scope(lex)

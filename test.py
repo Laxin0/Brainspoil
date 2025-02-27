@@ -4,6 +4,7 @@ from glob import glob
 
 PYTHON = "python"
 COMP = "fc"
+TEST_FOLDER = "tests"
 
 test_files = ''
 
@@ -35,7 +36,7 @@ if __name__ == "__main__":
         print("rec for record tests' output, run for compare output with expected)")
         exit(0)
 
-    test_files = glob("tests/*.bs")
+    test_files = glob(TEST_FOLDER+"/*.bs")
     if argv[1] == "rec":
         record()
     else:

@@ -1,4 +1,4 @@
-macro foo(a){
+macro foo(a: u8){
     print a;
     a = 54;
     print b;
