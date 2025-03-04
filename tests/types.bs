@@ -1,0 +1,19 @@
+macro* foo(a: u8, b){
+    Result = a+b;
+}
+
+macro* memPoint(): u8{
+    Result = 42;
+}
+
+let a;
+let b = 1;
+let c: u8;
+let d: u8 = 2;
+
+memPoint();
+foo(a, a);
+foo(b, b);
+foo(c, c);
+foo(d, d);
+memPoint();

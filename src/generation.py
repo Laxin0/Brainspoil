@@ -213,7 +213,6 @@ def gen_declare(node: NDeclare):
     global bfvars, sp, nesting
     assert isinstance(node, NDeclare)
     id, exp, vtype = node.id, node.val, node.type
-    if vtype == None: vtype = "u8" # Think: Auto / u8
 
     if '.'*nesting+id.val in bfvars.keys():
         error(f"{id.loc}: ERROR: Variable `{id.val}` already declared.")

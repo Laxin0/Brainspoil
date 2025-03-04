@@ -135,9 +135,9 @@ class Lexer():
 
 macros = []
 
-def parse_type(lex: Lexer) -> str|None:
+def parse_type(lex: Lexer) -> str:
     if not lex.next_is(TokenType.COLON):
-        return None
+        return "u8"
     lex.expect(TokenType.COLON)
     if not lex.next_is(TokenType.IDENT):
         error(f"{lex.peek().loc}: ERROR: Expected type name but found {tok_to_str[lex.peek().type]}.")
@@ -267,16 +267,16 @@ def parse_macro_def(lex: Lexer) -> NMacroDef:
     args = []
     if lex.next_is(TokenType.IDENT):
         name = lex.expect(TokenType.IDENT)
-        arg_type = parse_type(lex) or "u8"
+        arg_type = parse_type(lex)
         args.append((name, arg_type))
     while lex.next_is(TokenType.COMMA):
         lex.expect(TokenType.COMMA)
         name = lex.expect(TokenType.IDENT)
-        arg_type = parse_type(lex) or "u8"
+        arg_type = parse_type(lex)
         args.append((name, arg_type))
     lex.expect(TokenType.PAREN_CL)
 
-    ret_type = None
+    ret_type = '_None'
     if is_func:
         ret_type = parse_type(lex)
     body = parse_scope(lex)
