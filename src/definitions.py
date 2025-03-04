@@ -19,6 +19,7 @@ class TokenType(Enum):
     KW_ELSE = iota()
     KW_WHILE = iota()
     KW_MACRO = iota()
+    KW_STRUCT = iota()
 
     IDENT = iota()
     INTLIT = iota()
@@ -48,7 +49,7 @@ class TokenType(Enum):
     GREATER = iota()
     LESSEQ = iota()
     GREATEREQ = iota()
-
+    DOT = iota()
     EOF = iota()
 
 
@@ -105,7 +106,8 @@ keywords = {
     "if": TokenType.KW_IF,
     "else": TokenType.KW_ELSE,
     "while": TokenType.KW_WHILE,
-    "macro": TokenType.KW_MACRO
+    "macro": TokenType.KW_MACRO,
+    "struct": TokenType.KW_STRUCT
 }
 
 puncts = {
@@ -130,7 +132,8 @@ puncts = {
     "<": TokenType.LESS,
     ">=": TokenType.GREATEREQ,
     "<=": TokenType.LESSEQ,
-    ",": TokenType.COMMA
+    ",": TokenType.COMMA,
+    ".": TokenType.DOT
 }
 
 tok_to_str = {
@@ -141,6 +144,7 @@ tok_to_str = {
     TokenType.KW_ELSE: '`else` keyword',
     TokenType.KW_WHILE: '`while` keyword',
     TokenType.KW_MACRO: '`macro` keyword',
+    TokenType.KW_MACRO: '`struct` keyword',
 
     TokenType.IDENT: 'identifier',
     TokenType.INTLIT: 'integer literal',
@@ -154,6 +158,7 @@ tok_to_str = {
     TokenType.TIMES: '`*`',
     TokenType.SLASH: '`/`',
     TokenType.COMMA: '`,`',
+    TokenType.DOT: '`.`',
     TokenType.PAREN_OP: '`(`',
     TokenType.PAREN_CL: '`)`',
     TokenType.CURL_OP: '`{`',
