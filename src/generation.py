@@ -59,16 +59,24 @@ def to(addr):
         res = '>'*steps
     return res
 
-def store(addr: int):
+def store(addr: int, size: int):
     global sp
-    res = f"{to(addr)}[-]{to(sp-1)}[-{to(addr)}+{to(sp-1)}]\n"
-    sp -= 1
+    res = ''
+    for n in range(size):
+        res += to(addr+n) + "[-]"
+    for n in range(size):
+        res += to(sp-size+n) + "[-" + to(addr+n) + "+" + to(sp-size+n) + "]"
+    sp -= size
     return res
 
-def top(addr: int):
+def top(addr: int, size: int):
     global sp
-    res = f"{to(sp)}[-]>[-]<{to(addr)}[-{to(sp)}+{to(sp+1)}+{to(addr)}]{to(sp+1)}[-{to(addr)}+{to(sp+1)}]\n"
-    sp += 1
+    res = ''
+    for n in range(size):
+        res += to(sp+n) + "[-]" + to(sp+n+size) + "[-]"
+    for n in range(size):
+        res += to(addr+n) + "[-" + to(sp+n) + "+" + to(sp+n+size) + "+" + to(addr+n) + "]" + to(sp+n+size) + "[-" + to(addr+n) + "+" + to(sp+n+size) + "]"
+    sp += size
     return res
 
 def pushint(n: int):
@@ -108,7 +116,8 @@ def gen_term_from_tok(tok: Token):
         case TokenType.CHAR:
             return pushint(ord(tok.val))
         case TokenType.IDENT:
-            return top(get_var(tok)[0])
+            addr, typ = get_var(tok)
+            return top(addr, bftypes[typ])
         case _:
             assert False, "Unreachable"
 
@@ -203,15 +212,15 @@ def gen_declare(node: NDeclare):
     else:
         check_type(exp, vtype)
         gened_expr = gen_expr(exp)
-    return gened_expr + store(addr)
+    return gened_expr + store(addr, bftypes[vtype])
 
 def gen_assign(node: NAssign):
     assert isinstance(node, NAssign)
     id = node.id
 
     var = get_var(id)
-    check_type(node.val, var[1])
-    return gen_expr(node.val) + store(var[0])
+    check_type(node.val, var[1]) #TODO: check if type can be unknown
+    return gen_expr(node.val) + store(var[0], bftypes[var[1]])
 
 def gen_print(node: NPrint):
     global sp
@@ -229,7 +238,7 @@ def gen_read(node: NPrint):
     #TODO compare types (must be u8);
     res = to(sp)+','
     sp += 1 
-    res += store(var[0]) #TODO: optimize
+    res += store(var[0], 1) #TODO: optimize
     return res+'\n'
 
 def gen_scope(node: NScope):
@@ -272,7 +281,7 @@ def gen_while(node: NWhile):
     cond_addr = sp
     check_type(node.cond, "u8")
     res = gen_expr(node.cond)
-    res += f"{to(cond_addr)}[\n{gen_scope(node.body)}\n{gen_expr(node.cond)}{store(cond_addr)}{to(cond_addr)}]"
+    res += f"{to(cond_addr)}[\n{gen_scope(node.body)}\n{gen_expr(node.cond)}{store(cond_addr, 1)}{to(cond_addr)}]"
     sp -= 1
     return res
 
