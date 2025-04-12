@@ -41,7 +41,6 @@ class TokenType(Enum):
     COLON = iota()
     AND = iota()
     OR = iota()
-    AT = iota()
     EQ = iota()
     NEQ = iota()
     NOT = iota()
@@ -118,7 +117,6 @@ puncts = {
     ")": TokenType.PAREN_CL,
     "}": TokenType.CURL_CL,
     "{": TokenType.CURL_OP, 
-    "@": TokenType.AT,
     "!": TokenType.NOT,
     "+": TokenType.PLUS,
     "-": TokenType.MINUS,
@@ -169,7 +167,6 @@ tok_to_str = {
     TokenType.OR: '`||`',
     TokenType.EQ: '`==`',
     TokenType.NEQ: '`!=`',
-    TokenType.AT: '`@`',
     TokenType.NOT: '`!`',
     TokenType.LESSEQ: '`<=`',
     TokenType.LESS: '`<`',
@@ -205,16 +202,12 @@ class Token():
 class Expr(): pass #TODO add loc field for NBinExpr and NTerm ???
 
 @dataclass
-class NLoad():
-    addr: Expr
-
-@dataclass
 class NNot():
     expr: NTerm
 
 @dataclass
 class NTerm(Expr):
-    val: Token|NLoad|NMacroUse
+    val: Token|NMacroUse
     loc: str
 
 @dataclass
@@ -230,11 +223,6 @@ class Statement(): pass
 @dataclass 
 class NStr(Statement):
     string: str
-    
-@dataclass
-class NStore(Statement):
-    addr: Expr
-    val: Expr
 
 @dataclass
 class NScope(Statement):

@@ -164,10 +164,6 @@ def parse_term(lex: Lexer) -> Expr:
         lex.expect(TokenType.PAREN_CL)
         exp.loc = tok.loc
         return exp #TODO: wrap in NTerm
-    elif lex.next_is(TokenType.AT): #TODO: deprecate
-        tok = lex.expect(TokenType.AT)
-        exp = parse_term(lex)
-        return NTerm(NLoad(exp), tok.loc)
     elif lex.next_is(TokenType.CHAR):
         tok = lex.expect(TokenType.CHAR)
         return NTerm(tok, tok.loc)
@@ -246,14 +242,6 @@ def parse_while(lex: Lexer):
     body = parse_scope(lex)
     return NWhile(cond, body)
 
-def parse_store(lex: Lexer) -> Statement:
-    lex.expect(TokenType.AT)
-    addr = parse_term(lex)
-    lex.expect(TokenType.ASSIGN)
-    val = parse_expr(lex, 1)
-    lex.expect(TokenType.SEMI)
-    return NStore(addr, val)
-
 def parse_macro_def(lex: Lexer) -> NMacroDef:
     lex.expect(TokenType.KW_MACRO)
     is_func = False
@@ -317,8 +305,6 @@ def parse_statement(lex: Lexer) -> Statement:
         return parse_ifelse(lex)
     elif lex.next_is(TokenType.KW_WHILE):
         return parse_while(lex)
-    elif lex.next_is(TokenType.AT):
-        return parse_store(lex)
     elif lex.next_is(TokenType.KW_MACRO):
         return parse_macro_def(lex)
     elif lex.next_is(TokenType.STRLIT):

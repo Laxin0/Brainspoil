@@ -35,7 +35,6 @@ def check_type(expr: Expr, type: str):
             else: assert False, "Unreachable"
         elif isinstance(expr.val, NNot): got_t = "u8"
         elif isinstance(expr.val, NMacroUse): got_t = get_macro(expr.val).type
-        elif isinstance(expr.val, NLoad): got_t = "u8"
         else: assert False, f"Unreachable got {expr.val}"
     else: False, "Unreachable"
     if got_t != type:
@@ -75,32 +74,6 @@ def pushint(n: int):
     res = to(sp) + '[-]' + '+'*n
     sp += 1
     return res+'\n'
-
-#def addto(src, dst):
-#    return f"{to(src)}[-{to(dst)}+{to(src)}]"
-
-def gen_load(node: NLoad):
-    assert isinstance(node, NLoad)
-    global sp, hp, head
-    p = sp
-    res = gen_expr(node.addr)
-    res += f"{to(p)}>[-]>[-]<<" # zero 2 cells after p, the head at p
-    res += f"[-{to(p+1)}+{to(hp-2)}+{to(p)}]" # copy p to p+1 and hp-2 (first counter cell in heap), the head at p
-    res += to(hp-2)
-    res += "[[-<<+>>]+<<-]+" # while counter > 0 move it one cell left, set curent pos to 1, decrement
-    res += ">[" # while cell with addres `counter` > 0
-    res += "-<<<+>>"
-    res += "[->>]" # follow tail of ones, after this the head at hp
-    head = hp
-    res += to(p)+'+'+to(p+1) # inc p, the head at p+1
-    res += f"[-{to(p+2)}+{to(hp-2)}+{to(p+1)}]"  # copy p+1 to p+2 and hp-2 (first counter cell in heap), the head at p+1
-    res += f"{to(p+2)}[-<+>]" # move p+2 to p+1, the head at p+2
-    res += to(hp-2)
-    res += "[[-<<+>>]+<<-]+" # while counter > 0 move it one cell left, set curent pos to 1, decrement
-    res += ">]<<<[->>>+<<<]>>>" # the head at cell with addres `counter`
-    res += "<[->>]" # follow tail of ones, after this the head at hp
-    head = hp
-    return res
 
 def gen_not(node: NNot):
     assert isinstance(node, NNot)
@@ -143,8 +116,6 @@ def gen_term(node: NTerm):
     val = node.val
     if isinstance(val, Token):
         return gen_term_from_tok(val)
-    elif isinstance(val, NLoad): #TODO: deprecate
-        return gen_load(val)
     elif isinstance(val, NNot):
         return gen_not(val)
     elif isinstance(val, NMacroUse):
@@ -301,36 +272,6 @@ def gen_while(node: NWhile):
     sp -= 1
     return res
 
-def gen_store(node):
-    assert isinstance(node, NStore)
-    global sp, hp, head
-    res = ""
-    addr = sp
-    res += gen_expr(node.addr)
-    val = sp
-    res += gen_expr(node.val)
-    res += f"{to(addr)}>>[-]<<[-{to(hp-2)}+{to(addr+2)}+{to(addr)}]"
-    res += f">>[-<<+>>]<<"
-    res += to(hp-2)
-    res += "[[-<<+>>]+<<-]+" # while counter > 0 move it one cell left, set curent pos to 1, decrement
-    res += ">[-]<"
-    res += "[->>]"
-    head = hp
-    res += to(val)
-    res += "[-" #while value is not zero
-    res += f"{to(addr)}[-{to(hp-2)}+{to(addr+2)}+{to(addr)}]"
-    res += f">>[-<<+>>]<<"
-    res += to(hp-2)
-    res += "[[-<<+>>]+<<-]+" # while counter > 0 move it one cell left, set curent pos to 1, decrement
-    res += ">+<"
-    res += "[->>]"
-    head = hp
-    res += to(val)
-    res += "]"
-    sp -= 2
-    return res
-
-
 def gen_macro(node):
     global nesting, sp, bfvars
     assert isinstance(node, NMacroUse)
@@ -396,8 +337,6 @@ def gen_statement(node: Statement):
         return gen_ifelse(node)
     elif isinstance(node, NWhile):
         return gen_while(node)
-    elif isinstance(node, NStore):
-        return gen_store(node)
     elif isinstance(node, NMacroDef):
         define_macro(node)
         return ''
