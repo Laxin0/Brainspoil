@@ -6,6 +6,7 @@ head = hp = sp = 0
 sp = hp+1
 bfvars = {}
 bfmacros = {}
+bftypes = {"u8": 1}
 nesting = 0
 # TODO: make comments and formating optional
 
@@ -192,11 +193,12 @@ def gen_declare(node: NDeclare):
     addr = sp
     bfvars.update({'.'*nesting+id.val: (addr, vtype)})
     
-    sp += 1
+    if vtype not in bftypes.keys():
+        error(f"{id.loc}: ERROR: Unknown type of variable: `{vtype}`")
+    sp += bftypes[vtype]
     gened_expr: str
     if exp == None:
-        if vtype != "u8": error(f"{id.loc}: ERROR: Variable of not `u8` type must be initialized explicitly.")
-        gened_expr = pushint(0)
+        gened_expr = ''
     else:
         check_type(exp, vtype)
         gened_expr = gen_expr(exp)
@@ -223,6 +225,7 @@ def gen_read(node: NPrint):
     assert isinstance(node, NRead)
     id = node.id
     var = get_var(id)
+    #TODO compare types (must be u8);
     res = to(sp)+','
     sp += 1 
     res += store(var[0]) #TODO: optimize
@@ -287,8 +290,7 @@ def gen_macro(node):
     _sp = sp
     nesting += 1
     if macro.is_func:
-        addr = sp
-        res += pushint(0) #TODO: Result type can be not u8
+        addr = sp #TODO initialize or something else
         bfvars.update({'.'*(nesting)+"Result": (addr, macro.type)})
         
     for i in range(argc):

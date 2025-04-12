@@ -6,7 +6,7 @@ macro* memPoint(): u8{
     Result = 42;
 }
 
-let a;
+let a = 0;
 let b = 1;
 let c: u8;
 let d: u8 = 2;
