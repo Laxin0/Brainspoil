@@ -276,7 +276,7 @@ def parse_macro_use(lex: Lexer) -> NMacroUse: # just allocate arguments on the s
     lex.expect(TokenType.PAREN_OP)
     args = []
     if lex.peek().type in [TokenType.INTLIT, TokenType.IDENT, TokenType.PAREN_OP,
-                            TokenType.AT, TokenType.CHAR, TokenType.NOT]: #TODO: fuck, i dont know.... I just want shit to be done
+                           TokenType.CHAR, TokenType.NOT]: #TODO: fuck, i dont know.... I just want shit to be done
         args.append(parse_expr(lex, 0))
     while lex.next_is(TokenType.COMMA):
         lex.expect(TokenType.COMMA)
