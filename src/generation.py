@@ -25,19 +25,20 @@ def get_var(id: Token) -> tuple[int, str]:
         error(f"{id.loc}: ERROR: Variable `{id.val}` not declared.")
     return bfvars[("."*nest)+id.val]
     
-
-def check_type(expr: Expr, type: str):
-    got_t = 'None type'
-    if isinstance(expr, NBinExpr): got_t = "u8"
+def get_type(expr: Expr) -> str:
+    if isinstance(expr, NBinExpr): return "u8"
     elif isinstance(expr, NTerm):
         if isinstance(expr.val, Token):
-            if expr.val.type in (TokenType.CHAR, TokenType.INTLIT): got_t = "u8"
-            elif expr.val.type == TokenType.IDENT: got_t = get_var(expr.val)[1]
+            if expr.val.type in (TokenType.CHAR, TokenType.INTLIT): return "u8"
+            elif expr.val.type == TokenType.IDENT: return get_var(expr.val)[1]
             else: assert False, "Unreachable"
-        elif isinstance(expr.val, NNot): got_t = "u8"
-        elif isinstance(expr.val, NMacroUse): got_t = get_macro(expr.val).type
+        elif isinstance(expr.val, NNot): return "u8"
+        elif isinstance(expr.val, NMacroUse): return get_macro(expr.val).type
         else: assert False, f"Unreachable got {expr.val}"
     else: False, "Unreachable"
+    
+def check_type(expr: Expr, type: str):
+    got_t = get_type(expr)
     if got_t != type:
         error(f"{expr.loc}: ERROR: Mismatched types. Expected `{type}` but got `{got_t}`.")
 
