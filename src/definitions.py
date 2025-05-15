@@ -19,7 +19,6 @@ class TokenType(Enum):
     KW_ELSE = iota()
     KW_WHILE = iota()
     KW_MACRO = iota()
-    KW_STRUCT = iota()
 
     IDENT = iota()
     INTLIT = iota()
@@ -38,7 +37,6 @@ class TokenType(Enum):
     CURL_OP = iota()
     CURL_CL = iota()
     SEMI = iota()
-    COLON = iota()
     AND = iota()
     OR = iota()
     EQ = iota()
@@ -48,7 +46,6 @@ class TokenType(Enum):
     GREATER = iota()
     LESSEQ = iota()
     GREATEREQ = iota()
-    DOT = iota()
     EOF = iota()
 
 
@@ -106,12 +103,10 @@ keywords = {
     "else": TokenType.KW_ELSE,
     "while": TokenType.KW_WHILE,
     "macro": TokenType.KW_MACRO,
-    "struct": TokenType.KW_STRUCT
 }
 
 puncts = {
     ";": TokenType.SEMI,
-    ":": TokenType.COLON,
     "=": TokenType.ASSIGN,
     "(": TokenType.PAREN_OP,
     ")": TokenType.PAREN_CL,
@@ -131,7 +126,6 @@ puncts = {
     ">=": TokenType.GREATEREQ,
     "<=": TokenType.LESSEQ,
     ",": TokenType.COMMA,
-    ".": TokenType.DOT
 }
 
 tok_to_str = {
@@ -142,7 +136,6 @@ tok_to_str = {
     TokenType.KW_ELSE: '`else` keyword',
     TokenType.KW_WHILE: '`while` keyword',
     TokenType.KW_MACRO: '`macro` keyword',
-    TokenType.KW_MACRO: '`struct` keyword',
 
     TokenType.IDENT: 'identifier',
     TokenType.INTLIT: 'integer literal',
@@ -156,13 +149,11 @@ tok_to_str = {
     TokenType.TIMES: '`*`',
     TokenType.SLASH: '`/`',
     TokenType.COMMA: '`,`',
-    TokenType.DOT: '`.`',
     TokenType.PAREN_OP: '`(`',
     TokenType.PAREN_CL: '`)`',
     TokenType.CURL_OP: '`{`',
     TokenType.CURL_CL: '`}`',
     TokenType.SEMI: '`;`',
-    TokenType.COLON: '`:`',
     TokenType.AND: '`&&`',
     TokenType.OR: '`||`',
     TokenType.EQ: '`==`',
@@ -208,14 +199,12 @@ class NNot():
 @dataclass
 class NTerm(Expr):
     val: Token|NMacroUse
-    loc: str
 
 @dataclass
 class NBinExpr(Expr):
     lhs: Expr
     rhs: Expr
     op: BinOpKind
-    loc: str
 
 @dataclass
 class Statement(): pass
@@ -231,7 +220,6 @@ class NScope(Statement):
 @dataclass
 class NDeclare(Statement):
     id: Token
-    type: str
     val: Expr
 
 @dataclass
@@ -263,7 +251,6 @@ class NMacroDef(Statement):
     is_func: bool
     name: Token
     args: list[Token]
-    type: str
     body: NScope
 
 @dataclass

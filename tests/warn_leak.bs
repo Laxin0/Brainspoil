@@ -1,4 +1,4 @@
-macro* foo(): u8{
+macro* foo(){
     Result = 4;
 }
 

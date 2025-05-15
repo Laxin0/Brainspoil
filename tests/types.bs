@@ -1,15 +1,15 @@
-macro* foo(a: u8, b){
+macro* foo(a, b){
     Result = a+b;
 }
 
-macro* memPoint(): u8{
+macro* memPoint(){
     Result = 42;
 }
 
 let a = 0;
 let b = 1;
-let c: u8;
-let d: u8 = 2;
+let c;
+let d = 2;
 
 memPoint();
 foo(a, a);

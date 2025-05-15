@@ -1,3 +1,0 @@
-macro foo(a: WTF){}
-
-foo(234);

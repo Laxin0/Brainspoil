@@ -1,8 +1,8 @@
-macro* add(a, b): u8{
+macro* add(a, b){
     Result = a+b;
 }
 
-macro* z(): u8{}
+macro* z(){}
 
 let a = 42;
 let b = 2 * add(2, 5) + 4; # 18
