@@ -311,3 +311,61 @@ a_a1a1a0****0i0
 macro bar(a){
     a + 8
 }
+    .....o_o_o_o_o_0..IV
+def gen_load(node: NIndex):
+    assert isinstance(node, NIndex)
+    global sp, head
+    arr_addr = ...
+    p = sp
+    res =  gen_expr(node.index)
+    res += f"{to(p)}>[-]>[-]<<" # zero 2 cells after p, the head at p
+    res += f"[-{to(p+1)}+{to(arr_addr-2)}+{to(p)}]" # copy p to p+1 and arr_addr-2 (first counter cell in arr), the head at p
+    res += to(arr_addr-2)
+    res += "[[-<<+>>]+<<-]+" # while counter > 0 move it one cell left, set curent pos to 1, decrement
+    res += ">[" # while cell with addres `counter` > 0
+    res += "-<<<+>>"
+    res += "[->>]" # follow tail of ones, after this the head at arr_addr
+    head = arr_addr
+    res += to(p)+'+'+to(p+1) # inc p, the head at p+1
+    res += f"[-{to(p+2)}+{to(arr_addr-2)}+{to(p+1)}]"  # copy p+1 to p+2 and arr_addr-2 (first counter cell in arr), the head at p+1
+    res += f"{to(p+2)}[-<+>]" # move p+2 to p+1, the head at p+2
+    res += to(arr_addr-2)
+    res += "[[-<<+>>]+<<-]+" # while counter > 0 move it one cell left, set curent pos to 1, decrement
+    res += ">]<<<[->>>+<<<]>>>" # the head at cell with addres `counter`
+    res += "<[->>]" # follow tail of ones, after this the head at arr_addr
+    head = arr_addr
+    return res
+
+....IV
+def gen_store(node: NIndex, val_expr: Expr):
+    assert isinstance(node, NStore)
+    global sp, head
+    res = ""
+    arr_index = ...
+    index_addr = sp
+    res += gen_expr(node.index)
+    val_addr = sp
+    res += gen_expr(val_expr)
+    res += f"{to(index_addr)}>>[-]<<[-{to(arr_addr-2)}+{to(index_addr+2)}+{to(index_addr)}]"
+    res += f">>[-<<+>>]<<"
+    res += to(arr_addr-2)
+    res += "[[-<<+>>]+<<-]+" # while counter > 0 move it one cell left, set curent pos to 1, decrement
+    res += ">[-]<"
+    res += "[->>]"
+    head = arr_addr
+    res += to(val_addr)
+    res += "[-" #while value is not zero
+    res += f"{to(index_addr)}[-{to(arr_addr-2)}+{to(index_addr+2)}+{to(index_addr)}]"
+    res += f">>[-<<+>>]<<"
+    res += to(arr_addr-2)
+    res += "[[-<<+>>]+<<-]+" # while counter > 0 move it one cell left, set curent pos to 1, decrement
+    res += ">+<"
+    res += "[->>]"
+    head = arr_addr
+    res += to(val_addr)
+    res += "]"
+    sp -= 2
+    return res
+
+
+    .....o_o_o_o_o_0..IV

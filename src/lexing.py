@@ -198,11 +198,21 @@ def parse_declare(lex: Lexer) -> NDeclare:
     error(f"{lex.peek().loc}: ERROR: Expected {tok_to_str[TokenType.ASSIGN]} or {tok_to_str[TokenType.SEMI]} but found {tok_to_str[lex.peek().type]}")
 
 def parse_assign(lex: Lexer) -> NAssign:
-    vid = lex.expect(TokenType.IDENT)
+    id = lex.expect(TokenType.IDENT)
+
+    if lex.next_is(TokenType.SQR_OP):
+        lex.expect(TokenType.SQR_OP)
+        index = parse_expr(lex, 1)
+        lex.expect(TokenType.SQR_CL)
+        _ = lex.expect(TokenType.ASSIGN)
+        exp = parse_expr(lex, 1)
+        _ = lex.expect(TokenType.SEMI)
+        return NAssign(NIndex(id, index), exp)
     _ = lex.expect(TokenType.ASSIGN)
     exp = parse_expr(lex, 1)
     _ = lex.expect(TokenType.SEMI)
-    return NAssign(vid, exp)
+    return NAssign(id, exp)
+
 
 def parse_read(lex: Lexer) -> NRead:
     _ = lex.expect(TokenType.KW_READ)

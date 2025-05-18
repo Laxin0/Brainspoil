@@ -12,6 +12,12 @@ nesting = 0
 
 cmp = "[-]>[-]<<<[->>+>+<<<]>>>[-<<<+>>>][-]>[-]<<<[->>+>+<<<]>>>[-<<<+>>>][-]<<[>[>+<[-]]<[-]]>>[-<<+>>]<<[<<->->>[-]>[-]<<<<[->>>+>+<<<<]>>>>[-<<<<+>>>>][-]>[-]<<<<[->>>+>+<<<<]>>>>[-<<<<+>>>>][-]<<[>[>+<[-]]<[-]]>>[-<<+>>]<<<[-]>[-<+>]<]"
 
+def get_arr(id: Token):
+    assert isinstance(id, Token)
+    if not id.val in bfarrs.keys():
+        error(f"{id.loc}: ERROR: Array `{id.val}` not declared.")
+    return bfarrs[id.loc]
+
 def get_macro(node: NMacroUse) -> NMacroDef:
     assert isinstance(node, NMacroUse)
     if node.name.val in bfmacros.keys():
@@ -195,12 +201,69 @@ def gen_declare(node: NDeclare):
         gened_expr = gen_expr(exp)
     return gened_expr + store(addr, 1)
 
+def gen_load(node: NIndex):
+    assert isinstance(node, NIndex)
+    global sp, head
+    arr_addr = get_arr(node.id)
+    p = sp
+    res =  gen_expr(node.index)
+    res += f"{to(p)}>[-]>[-]<<" # zero 2 cells after p, the head at p
+    res += f"[-{to(p+1)}+{to(arr_addr-2)}+{to(p)}]" # copy p to p+1 and arr_addr-2 (first counter cell in arr), the head at p
+    res += to(arr_addr-2)
+    res += "[[-<<+>>]+<<-]+" # while counter > 0 move it one cell left, set curent pos to 1, decrement
+    res += ">[" # while cell with addres `counter` > 0
+    res += "-<<<+>>"
+    res += "[->>]" # follow tail of ones, after this the head at arr_addr
+    head = arr_addr
+    res += to(p)+'+'+to(p+1) # inc p, the head at p+1
+    res += f"[-{to(p+2)}+{to(arr_addr-2)}+{to(p+1)}]"  # copy p+1 to p+2 and arr_addr-2 (first counter cell in arr), the head at p+1
+    res += f"{to(p+2)}[-<+>]" # move p+2 to p+1, the head at p+2
+    res += to(arr_addr-2)
+    res += "[[-<<+>>]+<<-]+" # while counter > 0 move it one cell left, set curent pos to 1, decrement
+    res += ">]<<<[->>>+<<<]>>>" # the head at cell with addres `counter`
+    res += "<[->>]" # follow tail of ones, after this the head at arr_addr
+    head = arr_addr
+    return res
+
+def gen_sp_to_arr(node: NIndex, val_expr: Expr):
+    assert isinstance(node, NIndex)
+    global sp, head
+    res = ""
+    arr_addr = get_arr(node.id)
+    index_addr = sp
+    res += gen_expr(node.index)
+    val_addr = sp
+    res += gen_expr(val_expr)
+    res += f"{to(index_addr)}>>[-]<<[-{to(arr_addr-2)}+{to(index_addr+2)}+{to(index_addr)}]"
+    res += f">>[-<<+>>]<<"
+    res += to(arr_addr-2)
+    res += "[[-<<+>>]+<<-]+" # while counter > 0 move it one cell left, set curent pos to 1, decrement
+    res += ">[-]<"
+    res += "[->>]"
+    head = arr_addr
+    res += to(val_addr)
+    res += "[-" #while value is not zero
+    res += f"{to(index_addr)}[-{to(arr_addr-2)}+{to(index_addr+2)}+{to(index_addr)}]"
+    res += f">>[-<<+>>]<<"
+    res += to(arr_addr-2)
+    res += "[[-<<+>>]+<<-]+" # while counter > 0 move it one cell left, set curent pos to 1, decrement
+    res += ">+<"
+    res += "[->>]"
+    head = arr_addr
+    res += to(val_addr)
+    res += "]"
+    sp -= 2
+    return res
+
 def gen_assign(node: NAssign):
     assert isinstance(node, NAssign)
-    id = node.id
 
+    if isinstance(node.lhs, NIndex):
+        
+
+    id = node.lhs
     var = get_var(id)
-    return gen_expr(node.val) + store(var, 1)
+    return gen_expr(node.rhs) + store(var, 1)
 
 def gen_print(node: NPrint):
     global sp

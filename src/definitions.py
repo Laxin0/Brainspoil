@@ -38,6 +38,8 @@ class TokenType(Enum):
     PAREN_CL = iota()
     CURL_OP = iota()
     CURL_CL = iota()
+    SQR_OP = iota()
+    SQR_CL = iota()
     SEMI = iota()
     AND = iota()
     OR = iota()
@@ -115,6 +117,8 @@ puncts = {
     ")": TokenType.PAREN_CL,
     "}": TokenType.CURL_CL,
     "{": TokenType.CURL_OP, 
+    "[": TokenType.SQR_OP,
+    "]": TokenType.SQR_CL,
     "!": TokenType.NOT,
     "+": TokenType.PLUS,
     "-": TokenType.MINUS,
@@ -159,6 +163,8 @@ tok_to_str = {
     TokenType.PAREN_CL: '`)`',
     TokenType.CURL_OP: '`{`',
     TokenType.CURL_CL: '`}`',
+    TokenType.SQR_CL: '`]`',
+    TokenType.SQR_OP: '`[`',
     TokenType.SEMI: '`;`',
     TokenType.AND: '`&&`',
     TokenType.OR: '`||`',
@@ -209,7 +215,7 @@ class NNot():
 
 @dataclass
 class NTerm(Expr):
-    val: Token|NMacroUse
+    val: Token|NMacroUse|NNot|NIndex
 
 @dataclass
 class NBinExpr(Expr):
@@ -240,8 +246,8 @@ class NConstDecl(Statement):
 
 @dataclass
 class NAssign(Statement):
-    id: Token
-    val: Expr
+    lhs: Token | NIndex
+    rhs: Expr
 
 @dataclass
 class NPrint(Statement):
@@ -273,6 +279,11 @@ class NMacroDef(Statement):
 class NMacroUse():
     name: Token
     args: list[Expr]
+
+@dataclass
+class NIndex():
+    id: TokenType
+    index: Expr
 
 @dataclass
 class NProg():
