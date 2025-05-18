@@ -280,9 +280,17 @@ def gen_macro(node):
         bfvars.update({'.'*(nesting)+"Result": addr})
         
     for i in range(argc):
-        addr = sp
-        res += gen_expr(node.args[i])
-        bfvars.update({'.'*(nesting)+macro.args[i].val: addr})
+        if macro.args[i].is_ref:
+            if not node.args[i].is_ref:
+                error(f"{node.name.loc}: ERROR: {i+1}th arg must be passed by reference.")
+            addr = get_var(node.args[i].val)
+            bfvars.update({'.'*(nesting)+macro.args[i].val.val: addr})
+        else:
+            if node.args[i].is_ref:
+                error(f"{node.name.loc}: ERROR: {i+1}th arg must be passed by value.")
+            addr = sp
+            res += gen_expr(node.args[i].val)
+            bfvars.update({'.'*(nesting)+macro.args[i].val.val: addr})
         
     nesting -= 1
     res += gen_scope(macro.body)

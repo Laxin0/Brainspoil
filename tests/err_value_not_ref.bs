@@ -1,0 +1,19 @@
+macro foo(&a, b){
+    a = 'a';
+    b = 'b';
+}
+
+let a = 'A';
+let b = 'B';
+
+"before: \n";
+
+print a; "\n";
+print b; "\n";
+
+foo(&a, &b);
+
+"after: \n";
+
+print a; "\n";
+print b; "\n";

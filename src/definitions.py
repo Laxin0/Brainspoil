@@ -27,6 +27,7 @@ class TokenType(Enum):
     CHAR = iota()
 
     ASSIGN = iota()
+    REF = iota()
 
     PLUS = iota()
     MINUS = iota()
@@ -120,6 +121,7 @@ puncts = {
     "*": TokenType.TIMES,
     "/": TokenType.SLASH,
     "&&": TokenType.AND,
+    "&": TokenType.REF,
     "||": TokenType.OR,
     "==": TokenType.EQ,
     "!=": TokenType.NEQ,
@@ -146,6 +148,7 @@ tok_to_str = {
     TokenType.CHAR: 'character constant',
 
     TokenType.ASSIGN: '`=`',
+    TokenType.REF: '`&`',
 
     TokenType.PLUS: '`+`',
     TokenType.MINUS: '`-`',
@@ -191,6 +194,11 @@ class Token():
 #                                            AST NODES                                                    #
 #                                                                                                         #
 ###########################################################################################################
+
+@dataclass
+class Arg():
+    val: NTerm
+    is_ref: bool
 
 @dataclass
 class Expr(): pass #TODO add loc field for NBinExpr and NTerm ???

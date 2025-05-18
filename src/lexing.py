@@ -245,11 +245,20 @@ def parse_macro_def(lex: Lexer) -> NMacroDef:
     args = []
     if lex.next_is(TokenType.IDENT):
         name = lex.expect(TokenType.IDENT)
-        args.append(name)
+        args.append(Arg(name, False))
+    elif lex.next_is(TokenType.REF):
+        lex.expect(TokenType.REF)
+        name = lex.expect(TokenType.IDENT)
+        args.append(Arg(name, True))
     while lex.next_is(TokenType.COMMA):
         lex.expect(TokenType.COMMA)
+        is_ref = False
+        if lex.next_is(TokenType.REF):
+            lex.expect(TokenType.REF)
+            is_ref = True
         name = lex.expect(TokenType.IDENT)
-        args.append(name)
+        args.append(Arg(name, is_ref))
+
     lex.expect(TokenType.PAREN_CL)
     body = parse_scope(lex)
 
@@ -260,11 +269,22 @@ def parse_macro_use(lex: Lexer) -> NMacroUse: # just allocate arguments on the s
     lex.expect(TokenType.PAREN_OP)
     args = []
     if lex.peek().type in [TokenType.INTLIT, TokenType.IDENT, TokenType.PAREN_OP,
-                           TokenType.CHAR, TokenType.NOT]: #TODO: fuck, i dont know.... I just want shit to be done
-        args.append(parse_expr(lex, 0))
+                           TokenType.CHAR, TokenType.NOT, TokenType.REF]: #TODO: fuck, i dont know.... I just want shit to be done
+        if lex.next_is(TokenType.REF):
+            lex.expect(TokenType.REF)
+            ident = lex.expect(TokenType.IDENT)
+            args.append(Arg(ident, True))
+        else:
+            args.append(Arg(parse_expr(lex, 0), False))
+
     while lex.next_is(TokenType.COMMA):
         lex.expect(TokenType.COMMA)
-        args.append(parse_expr(lex, 0))
+        if lex.next_is(TokenType.REF):
+            lex.expect(TokenType.REF)
+            ident = lex.expect(TokenType.IDENT)
+            args.append(Arg(ident, True))
+        else:
+            args.append(Arg(parse_expr(lex, 0), False))
     lex.expect(TokenType.PAREN_CL)
     return NMacroUse(name, args)
 
