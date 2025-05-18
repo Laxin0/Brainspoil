@@ -5,8 +5,8 @@ MAX_NESTING = 100
 head = hp = sp = 0
 sp = hp+1
 bfvars = {}
+bfconsts = {}
 bfmacros = {}
-bftypes = {"u8": 1}
 nesting = 0
 # TODO: make comments and formating optional
 
@@ -98,6 +98,8 @@ def gen_term_from_tok(tok: Token):
         case TokenType.CHAR:
             return pushint(ord(tok.val))
         case TokenType.IDENT:
+            if tok.val in bfconsts.keys():
+                return pushint(bfconsts[tok.val])
             addr = get_var(tok)
             return top(addr, 1)
         case _:
@@ -178,6 +180,8 @@ def gen_declare(node: NDeclare):
 
     if '.'*nesting+id.val in bfvars.keys():
         error(f"{id.loc}: ERROR: Variable `{id.val}` already declared.")
+    if id.val in bfconsts.keys():
+        error(f"{id.loc}: ERROR: Name `{id.val}` already used by constant.")
 
     if get_nesting(id.val) >= 0: print(f"{id.loc}: WARNING: Variable shadowing. Variable `{id.val}` declared in an outer scope.")
     addr = sp
@@ -305,9 +309,21 @@ def gen_str(node: NStr):
         val = ord(c)
     return res
 
+def gen_const_decl(node: NConstDecl):
+    assert isinstance(node, NConstDecl)
+    if node.id.val in bfconsts.keys():
+        error(f"{node.id.loc}: ERROR: Constant `{node.id.val}` already declared.")
+    if node.id.val in bfvars.keys():
+        error(f"{node.id.loc}: ERROR: Name `{node.id.val}` already used by variable.")
+    bfconsts.update({node.id.val: node.val})
+    return ""
+
+
 def gen_statement(node: Statement):
     if isinstance(node, NDeclare):
         return gen_declare(node)
+    elif isinstance(node, NConstDecl):
+        return gen_const_decl(node)
     elif isinstance(node, NAssign):
         return gen_assign(node)
     elif isinstance(node, NPrint):

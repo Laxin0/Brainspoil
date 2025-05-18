@@ -268,10 +268,25 @@ def parse_macro_use(lex: Lexer) -> NMacroUse: # just allocate arguments on the s
     lex.expect(TokenType.PAREN_CL)
     return NMacroUse(name, args)
 
+def parse_const_decl(lex: Lexer) -> NConstDecl:
+    lex.expect(TokenType.KW_CONST)
+    ident = lex.expect(TokenType.IDENT)
+    lex.expect(TokenType.ASSIGN)
+    value: int
+    if lex.next_is(TokenType.INTLIT):
+        value = int(lex.expect(TokenType.INTLIT).val)
+    elif lex.next_is(TokenType.CHAR):
+        value = ord(lex.expect(TokenType.CHAR).val)
+    else:
+        error(f"{lex.peek().loc}: ERROR: Expected {tok_to_str[TokenType.INTLIT]} or {tok_to_str[TokenType.CHAR]} but found {tok_to_str[lex.peek().type]}")
+    lex.expect(TokenType.SEMI)
+    return NConstDecl(ident, value)
 
 def parse_statement(lex: Lexer) -> Statement:
     if lex.next_is(TokenType.KW_LET):
         return parse_declare(lex)
+    elif lex.next_is(TokenType.KW_CONST):
+        return parse_const_decl(lex)
     elif lex.next_is(TokenType.IDENT): # TODO: i don't like it
         name = lex.peek().val
         if name in macros:

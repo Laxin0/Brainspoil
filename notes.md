@@ -7,7 +7,6 @@ Statement ::= NDeclare
             | NScope
             | NIfElse
             | NWhile
-            | ~~NStore~~
             | NMacroDef
             | NmacroUse
 
@@ -19,7 +18,6 @@ Expr      ::= NTerm
 NTerm     ::= Token(int|char|str)
 			| *NIndex*
             | `(` Expr `)`
-            | ~~NLoad~~
             | NNot
             | NMacroUse
             
@@ -31,13 +29,14 @@ NIfElse   ::= `if` Expr NScope {`else` NScope}
 NWhile    ::= `while` Expr NScope  
 
 NDeclare  ::= `let` Token(str) | *NIndex* {`=` Expr} `;`
+
+NConstDecl ::= `const` Token(str) `=` Token(int|char) `;`
+
 NAssign   ::= Token(str) | *NIndex* = Expr `;`
 NPrint    ::= `print` Expr `;`
 NRead     ::= `read` Token(str) | *NIndex* `;`
 *NIndex   ::= Token(str) `[` Expr `]`*
-~~NLoad     ::= `@` Term~~
 NNot      ::= `!` Term
-~~NStore    ::= `@` Term `=` Expr `;`~~
 
 # My thoughts (Don't read)
 

@@ -13,6 +13,7 @@ def iota():
 
 class TokenType(Enum):
     KW_LET = iota()
+    KW_CONST = iota()
     KW_PRINT = iota()
     KW_READ = iota()
     KW_IF = iota()
@@ -103,6 +104,7 @@ keywords = {
     "else": TokenType.KW_ELSE,
     "while": TokenType.KW_WHILE,
     "macro": TokenType.KW_MACRO,
+    "const": TokenType.KW_CONST
 }
 
 puncts = {
@@ -130,6 +132,7 @@ puncts = {
 
 tok_to_str = {
     TokenType.KW_LET: '`let` keyword',
+    TokenType.KW_CONST: '`const` keyword',
     TokenType.KW_PRINT: '`print` keyword',
     TokenType.KW_READ: '`read` keyword',
     TokenType.KW_IF: '`if` keyword',
@@ -221,6 +224,11 @@ class NScope(Statement):
 class NDeclare(Statement):
     id: Token
     val: Expr
+
+@dataclass 
+class NConstDecl(Statement):
+    id: Token
+    val: int
 
 @dataclass
 class NAssign(Statement):
