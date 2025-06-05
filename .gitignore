@@ -3,4 +3,3 @@ __pycache__
 build
 tests/*.out
 tests/*.expect
-*.bat

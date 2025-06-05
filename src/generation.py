@@ -4,24 +4,27 @@ from definitions import *
 MAX_NESTING = 100
 head = hp = sp = 0
 sp = hp+1
-bfvars = {}
-bfconsts = {}
-bfmacros = {}
+
+bfnames = {}
+
+#bfvars = {}
+#bfconsts = {}
+#bfmacros = {}
 nesting = 0
 # TODO: make comments and formating optional
 
 cmp = "[-]>[-]<<<[->>+>+<<<]>>>[-<<<+>>>][-]>[-]<<<[->>+>+<<<]>>>[-<<<+>>>][-]<<[>[>+<[-]]<[-]]>>[-<<+>>]<<[<<->->>[-]>[-]<<<<[->>>+>+<<<<]>>>>[-<<<<+>>>>][-]>[-]<<<<[->>>+>+<<<<]>>>>[-<<<<+>>>>][-]<<[>[>+<[-]]<[-]]>>[-<<+>>]<<<[-]>[-<+>]<]"
 
-def get_arr(id: Token):
-    assert isinstance(id, Token)
-    if not id.val in bfarrs.keys():
-        error(f"{id.loc}: ERROR: Array `{id.val}` not declared.")
-    return bfarrs[id.loc]
+# def get_arr(id: Token):
+#     assert isinstance(id, Token)
+#     if not id.val in bfnames.keys() and isinstance():
+#         error(f"{id.loc}: ERROR: Array `{id.val}` not declared.")
+#     return bfarrs[id.loc]
 
 def get_macro(node: NMacroUse) -> NMacroDef:
     assert isinstance(node, NMacroUse)
-    if node.name.val in bfmacros.keys():
-        return bfmacros[node.name.val]
+    if node.name.val in bfnames.keys() and isinstance(bfnames[node.name.val], NMacroDef):
+        return bfnames[node.name.val]
     error(f"{node.name.loc}: ERROR: Macro `{node.name.val}` not defined.")
 
 def get_var(id: Token) -> int:
@@ -29,12 +32,12 @@ def get_var(id: Token) -> int:
     nest = get_nesting(id.val)
     if nest < 0:
         error(f"{id.loc}: ERROR: Variable `{id.val}` not declared.")
-    return bfvars[("."*nest)+id.val]
+    return bfnames[("."*nest)+id.val].addr
 
 def define_macro(macro: NMacroDef):
-    if macro.name.val in bfmacros.keys():
+    if macro.name.val in bfnames.keys() and isinstance(bfnames[macro.name.val], NMacroDef):
         error(f"{macro.name.loc}: ERROR: Redefinition of macro `{macro.name.val}`")
-    bfmacros.update({macro.name.val: macro}) # TODO: i don't like that name still stores as token
+    bfnames.update({macro.name.val: macro}) # TODO: i don't like that name still stores as token
     
 def to(addr):
     global head, sp
@@ -89,14 +92,15 @@ def gen_not(node: NNot):
     return res
 
 def get_nesting(name: str) -> int:
-    global nesting, bfvars
+    global nesting, bfnames
     for n in range(nesting, -1, -1):
-        if '.'*n+name in bfvars.keys():
+        nname = '.'*n+name
+        if nname in bfnames.keys():
             return n
     return -1
 
 def gen_term_from_tok(tok: Token):
-    global bfvars
+    global bfnames
     assert isinstance(tok, Token)
     match tok.type:
         case TokenType.INTLIT:
@@ -104,8 +108,8 @@ def gen_term_from_tok(tok: Token):
         case TokenType.CHAR:
             return pushint(ord(tok.val))
         case TokenType.IDENT:
-            if tok.val in bfconsts.keys():
-                return pushint(bfconsts[tok.val])
+            if tok.val in bfnames.keys() and isinstance(bfnames[tok.val], ConstData):
+                return pushint(bfnames[tok.val].val)
             addr = get_var(tok)
             return top(addr, 1)
         case _:
@@ -180,18 +184,19 @@ def gen_expr(node: Expr):
         raise TypeError(node.__class__)
 
 def gen_declare(node: NDeclare):
-    global bfvars, sp, nesting
+    global bfnames, sp, nesting
     assert isinstance(node, NDeclare)
     id, exp = node.id, node.val
 
-    if '.'*nesting+id.val in bfvars.keys():
+    name = '.'*nesting+id.val
+    if name in bfnames.keys() and isinstance(bfnames[name], VarData):
         error(f"{id.loc}: ERROR: Variable `{id.val}` already declared.")
-    if id.val in bfconsts.keys():
-        error(f"{id.loc}: ERROR: Name `{id.val}` already used by constant.")
+    if name in bfnames.keys():
+         error(f"{id.loc}: ERROR: Name `{id.val}` already used.") #TODO: by who or at least what type
 
     if get_nesting(id.val) >= 0: print(f"{id.loc}: WARNING: Variable shadowing. Variable `{id.val}` declared in an outer scope.")
     addr = sp
-    bfvars.update({'.'*nesting+id.val: addr})
+    bfnames.update({name: VarData(addr)})
     
     sp += 1
     gened_expr: str
@@ -258,7 +263,7 @@ def gen_sp_to_arr(node: NIndex, val_expr: Expr):
 def gen_assign(node: NAssign):
     assert isinstance(node, NAssign)
 
-    if isinstance(node.lhs, NIndex):
+    #if isinstance(node.lhs, NIndex):
         
 
     id = node.lhs
@@ -284,17 +289,17 @@ def gen_read(node: NPrint):
 
 def gen_scope(node: NScope):
     assert isinstance(node, NScope)
-    global sp, bfvars, nesting
+    global sp, bfnames, nesting
     res = ''
-    vars_c = len(bfvars)
+    vars_c = len(bfnames)
     sp_ = sp
 
     nesting += 1
     res += '\n'.join(map(gen_statement, node.stmts))
     nesting -= 1
 
-    for _ in range(len(bfvars)-vars_c):
-        bfvars.popitem()
+    for _ in range(len(bfnames)-vars_c):
+        bfnames.popitem()
     sp = sp_
     return res
 
@@ -325,7 +330,7 @@ def gen_while(node: NWhile):
     return res
 
 def gen_macro(node):
-    global nesting, sp, bfvars
+    global nesting, sp, bfnames
     assert isinstance(node, NMacroUse)
     if nesting > MAX_NESTING:
         error(f"{node.name.loc}: ERROR: Maximum nesting level exeeded while generating `{node.name.val}` macro. Macros don't support recursion!")
@@ -340,29 +345,29 @@ def gen_macro(node):
     nesting += 1
     if macro.is_func:
         addr = sp #TODO initialize or something else
-        bfvars.update({'.'*(nesting)+"Result": addr})
+        bfnames.update({'.'*(nesting)+"Result": VarData(addr)})
         
     for i in range(argc):
         if macro.args[i].is_ref:
             if not node.args[i].is_ref:
                 error(f"{node.name.loc}: ERROR: {i+1}th arg must be passed by reference.")
             addr = get_var(node.args[i].val)
-            bfvars.update({'.'*(nesting)+macro.args[i].val.val: addr})
+            bfnames.update({'.'*(nesting)+macro.args[i].val.val: VarData(addr)})
         else:
             if node.args[i].is_ref:
                 error(f"{node.name.loc}: ERROR: {i+1}th arg must be passed by value.")
             addr = sp
             res += gen_expr(node.args[i].val)
-            bfvars.update({'.'*(nesting)+macro.args[i].val.val: addr})
+            bfnames.update({'.'*(nesting)+macro.args[i].val.val: VarData(addr)})
         
     nesting -= 1
     res += gen_scope(macro.body)
     for _ in range(argc):
-        bfvars.popitem()
+        bfnames.popitem()
 
     sp = _sp
     if macro.is_func:
-        bfvars.popitem()
+        bfnames.popitem()
         sp += 1
     return res
 
@@ -382,11 +387,11 @@ def gen_str(node: NStr):
 
 def gen_const_decl(node: NConstDecl):
     assert isinstance(node, NConstDecl)
-    if node.id.val in bfconsts.keys():
+    if node.id.val in bfnames.keys() and isinstance(bfnames[node.id.val], ConstData):
         error(f"{node.id.loc}: ERROR: Constant `{node.id.val}` already declared.")
-    if node.id.val in bfvars.keys():
-        error(f"{node.id.loc}: ERROR: Name `{node.id.val}` already used by variable.")
-    bfconsts.update({node.id.val: node.val})
+    if node.id.val in bfnames.keys() and not isinstance(bfnames[node.id.val], ConstData):
+        error(f"{node.id.loc}: ERROR: Name `{node.id.val}` already used.") #TODO: by who?
+    bfnames.update({node.id.val: ConstData(node.val)})
     return ""
 
 
@@ -421,11 +426,11 @@ def gen_statement(node: Statement):
 
 def gen_prog(node: NProg, heap: int, formatting=False):
     assert isinstance(node, NProg)
-    global head, hp, sp, bfvars #TODO: I dont like it at all
+    global head, hp, sp #TODO: I dont like it at all
     head = 0
     hp = heap*2+1
     sp = hp+1
-    bfvars = {}
+    bfnames = {}
     code = "\n".join(gen_statement(s) for s in node.stmts)
     if formatting:
         return code

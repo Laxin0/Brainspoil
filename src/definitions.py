@@ -282,8 +282,20 @@ class NMacroUse():
 
 @dataclass
 class NIndex():
-    id: TokenType
+    arr_id: Token
     index: Expr
+
+@dataclass
+class VarData():
+    addr: int
+
+@dataclass
+class ArrData():
+    addr: int
+
+@dataclass
+class ConstData():
+    val: int
 
 @dataclass
 class NProg():
