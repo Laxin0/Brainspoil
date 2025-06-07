@@ -1,48 +1,47 @@
 # Rule 110
 
-let field = 0;
-let next = field + 10;
-
-@(field+9) = 1;
+const SIZE = 20;
 let iters = 20;
+
+arr field[SIZE];
+arr next[SIZE];
+
+field[SIZE-2] = 1;
 
 while iters{
 
-    let i = 8;
+    let i = SIZE-2;
     while i - 1{
-        let a = @(field+i-1);
-        let b = @(field+i);
-        let c = @(field+i+1);
+        let a = field[i-1];
+        let b = field[i];
+        let c = field[i+1];
 
-        let nextst;
+        let nextst = 0;
         if (a+b+c == 0) || (a+b+c == 3) || (a && (b+c == 0)){
             nextst = 0;
         }else{
             nextst = 1;
         }
 
-        @(next+i) = nextst;
+        next[i] = nextst;
 
         i = i-1;
     }
     
     # Copy 
-    i = 9;
-    while i{
-        @(field+i) = @(next+i);
+    i = SIZE-2;
+    while i-1{
+        field[i] = next[i];
         i = i - 1;
     }
 
     # Print
-    i = 0;
-    while 9-i{
-        if @(field+i){
-            print '*';
-        }else{
-            print ' ';
-        }
+    i = 1;
+    while SIZE-1-i{
+        if field[i]{  "*"; }
+        else       {  " "; }
         i = i + 1;
     }
-    print '\n';
+    "\n";
     iters = iters - 1;
 }

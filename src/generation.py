@@ -1,10 +1,7 @@
 from definitions import *
-#_A_A0...N
 
 MAX_NESTING = 100
-head = hp = sp = 0
-sp = hp+1
-
+head = sp = 0
 bfnames = {}
 
 #bfvars = {}
@@ -15,11 +12,24 @@ nesting = 0
 
 cmp = "[-]>[-]<<<[->>+>+<<<]>>>[-<<<+>>>][-]>[-]<<<[->>+>+<<<]>>>[-<<<+>>>][-]<<[>[>+<[-]]<[-]]>>[-<<+>>]<<[<<->->>[-]>[-]<<<<[->>>+>+<<<<]>>>>[-<<<<+>>>>][-]>[-]<<<<[->>>+>+<<<<]>>>>[-<<<<+>>>>][-]<<[>[>+<[-]]<[-]]>>[-<<+>>]<<<[-]>[-<+>]<]"
 
-# def get_arr(id: Token):
-#     assert isinstance(id, Token)
-#     if not id.val in bfnames.keys() and isinstance():
-#         error(f"{id.loc}: ERROR: Array `{id.val}` not declared.")
-#     return bfarrs[id.loc]
+def get_arr(id: Token):
+    assert isinstance(id, Token)
+    nest = get_nesting(id.val)
+    if nest < 0:
+        raise RuntimeError()
+        error(f"{id.loc}: ERROR: Array `{id.val}` not declared.")
+    if not isinstance(bfnames[nest*'.'+id.val], ArrData):
+        error(f"{id.loc}: ERROR: `{id.val}` isn't an array.")
+    return bfnames[nest*'.'+id.val].addr
+
+def get_const_val(id: Token):
+    assert isinstance(id, Token) and id.type == TokenType.IDENT
+    nest = get_nesting(id.val)
+    if nest < 0:
+        error(f"{id.loc}: ERROR: Constant `{id.val}` not defined.")
+    if not isinstance(bfnames[("."*nest)+id.val], ConstData):
+        error(f"{id.loc}: ERROR: `{id.val}` isn't a constant") #TODO: Do I need to check this or not? 
+    return bfnames[("."*nest)+id.val].val
 
 def get_macro(node: NMacroUse) -> NMacroDef:
     assert isinstance(node, NMacroUse)
@@ -32,6 +42,8 @@ def get_var(id: Token) -> int:
     nest = get_nesting(id.val)
     if nest < 0:
         error(f"{id.loc}: ERROR: Variable `{id.val}` not declared.")
+    if not isinstance(bfnames[("."*nest)+id.val], VarData):
+        error(f"{id.loc}: ERROR: `{id.val}` isn't a variable") #TODO: Do I need to check this or not? 
     return bfnames[("."*nest)+id.val].addr
 
 def define_macro(macro: NMacroDef):
@@ -127,6 +139,8 @@ def gen_term(node: NTerm):
         return gen_term_from_tok(val)
     elif isinstance(val, NNot):
         return gen_not(val)
+    elif isinstance(val, NIndex):
+        return gen_load(val)
     elif isinstance(val, NMacroUse):
         macro = get_macro(val)
         if not macro.is_func: #TODO: This code may be dead
@@ -210,13 +224,13 @@ def gen_declare(node: NDeclare):
         gened_expr = gen_expr(exp)
     return gened_expr + store(addr, 1)
 
-def gen_load(node: NIndex):
+def gen_load(node: NIndex): # i -- val
     assert isinstance(node, NIndex)
     global sp, head
-    arr_addr = get_arr(node.id)
+    arr_addr = get_arr(node.arr_id)
     p = sp
     res =  gen_expr(node.index)
-    res += f"{to(p)}>[-]>[-]<<" # zero 2 cells after p, the head at p
+    res += f"*{to(p)}>[-]>[-]<<" # zero 2 cells after p, the head at p
     res += f"[-{to(p+1)}+{to(arr_addr-2)}+{to(p)}]" # copy p to p+1 and arr_addr-2 (first counter cell in arr), the head at p
     res += to(arr_addr-2)
     res += "[[-<<+>>]+<<-]+" # while counter > 0 move it one cell left, set curent pos to 1, decrement
@@ -234,11 +248,11 @@ def gen_load(node: NIndex):
     head = arr_addr
     return res
 
-def gen_sp_to_arr(node: NIndex, val_expr: Expr):
+def gen_sp_to_arr(node: NIndex, val_expr: Expr): # i, val -- 
     assert isinstance(node, NIndex)
     global sp, head
     res = ""
-    arr_addr = get_arr(node.id)
+    arr_addr = get_arr(node.arr_id)
     index_addr = sp
     res += gen_expr(node.index)
     val_addr = sp
@@ -267,9 +281,9 @@ def gen_sp_to_arr(node: NIndex, val_expr: Expr):
 def gen_assign(node: NAssign):
     assert isinstance(node, NAssign)
 
-    #if isinstance(node.lhs, NIndex):
+    if isinstance(node.lhs, NIndex):
+        return gen_sp_to_arr(node.lhs, node.rhs)
         
-
     id = node.lhs
     var = get_var(id)
     return gen_expr(node.rhs) + store(var, 1)
@@ -349,14 +363,20 @@ def gen_macro(node):
     nesting += 1
     if macro.is_func:
         addr = sp #TODO initialize or something else
+        sp+=1
         bfnames.update({'.'*(nesting)+"Result": VarData(addr)})
         
     for i in range(argc):
         if macro.args[i].is_ref:
             if not node.args[i].is_ref:
                 error(f"{node.name.loc}: ERROR: {i+1}th arg must be passed by reference.")
-            addr = get_var(node.args[i].val)
-            bfnames.update({'.'*(nesting)+macro.args[i].val.val: VarData(addr)})
+            if node.args[i].val.val in bfnames.keys() and isinstance(bfnames[node.args[i].val.val], ArrData):
+                addr = get_arr(node.args[i].val)
+                bfnames.update({'.'*(nesting)+macro.args[i].val.val: ArrData(addr)})
+            else:
+                addr = get_var(node.args[i].val)
+                bfnames.update({'.'*(nesting)+macro.args[i].val.val: VarData(addr)})
+                
         else:
             if node.args[i].is_ref:
                 error(f"{node.name.loc}: ERROR: {i+1}th arg must be passed by value.")
@@ -397,17 +417,45 @@ def gen_const_decl(node: NConstDecl):
         error(f"{node.id.loc}: ERROR: Constant `{node.id.val}` already declared.")
     if name in bfnames.keys() and not isinstance(bfnames[node.id.val], ConstData):
         error(f"{node.id.loc}: ERROR: Name `{node.id.val}` already used.") #TODO: by who?
-    if get_nesting(node.id.val) >= 0: print(f"{node.id.loc}: WARNING: Name shadowing. Name `{node.id.val}` used in an outer scope.")
+    if get_nesting(node.id.val) >= 0: print(f"{node.id.loc}: WARNING: Name shadowing. Name `{node.id.val}` used in an outer scope or used by macro.")
 
     bfnames.update({name: ConstData(node.val)})
     return ""
 
+
+def gen_arr_decl(node: NArrDecl):
+    global sp, head
+    assert isinstance(node, NArrDecl)
+    name = "."*nesting + node.id.val
+    if name in bfnames.keys() and isinstance(bfnames[name], ArrData):
+        error(f"{node.id.loc}: ERROR: Array `{node.id.val}` already declared.")
+    if name in bfnames.keys() and not isinstance(bfnames[node.id.val], ArrData):
+        error(f"{node.id.loc}: ERROR: Name `{node.id.val}` already used.") 
+    if get_nesting(node.id.val) >= 0: print(f"{node.id.loc}: WARNING: Name shadowing. Name `{node.id.val}` used in an outer scope or used by macro.")
+    size: int
+    if node.size.type == TokenType.INTLIT:
+        size = int(node.size.val)
+    elif node.size.type == TokenType.IDENT:
+        size = get_const_val(node.size)
+    else:
+        assert False, "Unreacheable"
+    if size >= 256:
+        error(f"{node.size.loc}: ERROR: Size of an array must be less then 256.")
+
+    actual_size = size*2+1
+    res = to(sp) + "[-]>"*actual_size
+    sp += actual_size
+    head += actual_size
+    bfnames.update({name: ArrData(sp-1)})
+    return res
 
 def gen_statement(node: Statement):
     if isinstance(node, NDeclare):
         return gen_declare(node)
     elif isinstance(node, NConstDecl):
         return gen_const_decl(node)
+    elif isinstance(node, NArrDecl):
+        return gen_arr_decl(node)
     elif isinstance(node, NAssign):
         return gen_assign(node)
     elif isinstance(node, NPrint):
@@ -432,12 +480,11 @@ def gen_statement(node: Statement):
     else:
         assert False, "Unreacheable statement"
 
-def gen_prog(node: NProg, heap: int, formatting=False):
+def gen_prog(node: NProg, formatting=False):
     assert isinstance(node, NProg)
-    global head, hp, sp #TODO: I dont like it at all
+    global head, sp #TODO: I dont like it at all
     head = 0
-    hp = heap*2+1
-    sp = hp+1
+    sp = 0
     bfnames = {}
     code = "\n".join(gen_statement(s) for s in node.stmts)
     if formatting:

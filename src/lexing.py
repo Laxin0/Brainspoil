@@ -140,16 +140,25 @@ def parse_string(lex: Lexer) -> NStr:
     lex.expect(TokenType.SEMI)
     return NStr(string)
 
+def parse_rvalue_from_id(lex: Lexer) -> Token|NMacroUse|NIndex:
+    assert lex.peek().type == TokenType.IDENT
+    if lex.peek().val in macros:
+        return parse_macro_use(lex)
+    
+    ident = lex.expect(TokenType.IDENT)
+    if lex.next_is(TokenType.SQR_OP):
+        lex.expect(TokenType.SQR_OP)
+        expr = parse_expr(lex, 1)
+        lex.expect(TokenType.SQR_CL)
+        return NIndex(ident, expr)
+    return ident
+
 def parse_term(lex: Lexer) -> Expr:
     if lex.next_is(TokenType.INTLIT):
         tok = lex.expect(TokenType.INTLIT)
         return NTerm(tok)
     elif lex.next_is(TokenType.IDENT): #TODO: think
-        ident = lex.peek()
-        if ident.val in macros:
-            return NTerm(parse_macro_use(lex))
-        else:
-            return NTerm(lex.expect(TokenType.IDENT))
+        return NTerm(parse_rvalue_from_id(lex))
     elif lex.next_is(TokenType.PAREN_OP):
         tok = lex.expect(TokenType.PAREN_OP)
         exp = parse_expr(lex, 1)
@@ -197,21 +206,21 @@ def parse_declare(lex: Lexer) -> NDeclare:
         return NDeclare(id, None)
     error(f"{lex.peek().loc}: ERROR: Expected {tok_to_str[TokenType.ASSIGN]} or {tok_to_str[TokenType.SEMI]} but found {tok_to_str[lex.peek().type]}")
 
-def parse_assign(lex: Lexer) -> NAssign:
-    id = lex.expect(TokenType.IDENT)
-
+def parse_lvalue(lex: Lexer) -> Token|NIndex:
+    ident = lex.expect(TokenType.IDENT)
     if lex.next_is(TokenType.SQR_OP):
         lex.expect(TokenType.SQR_OP)
-        index = parse_expr(lex, 1)
+        expr = parse_expr(lex, 1)
         lex.expect(TokenType.SQR_CL)
-        _ = lex.expect(TokenType.ASSIGN)
-        exp = parse_expr(lex, 1)
-        _ = lex.expect(TokenType.SEMI)
-        return NAssign(NIndex(id, index), exp)
+        return NIndex(ident, expr)
+    return ident
+
+def parse_assign(lex: Lexer) -> NAssign:
+    lhs = parse_lvalue(lex)
     _ = lex.expect(TokenType.ASSIGN)
     exp = parse_expr(lex, 1)
     _ = lex.expect(TokenType.SEMI)
-    return NAssign(id, exp)
+    return NAssign(lhs, exp)
 
 
 def parse_read(lex: Lexer) -> NRead:
@@ -313,7 +322,16 @@ def parse_const_decl(lex: Lexer) -> NConstDecl:
     return NConstDecl(ident, value)
 
 def parse_arr_decl(lex: Lexer):
-    raise NotImplementedError("array are not impplemented")
+    lex.expect(TokenType.KW_ARR)
+    ident = lex.expect(TokenType.IDENT)
+    lex.expect(TokenType.SQR_OP)
+
+    size_param = lex.get_next()
+    if size_param.type not in [TokenType.INTLIT, TokenType.IDENT]:
+        error(f"{size_param.loc}: ERROR: Expected {tok_to_str[TokenType.INTLIT]} or {tok_to_str[TokenType.IDENT]} but found {tok_to_str[size_param.type]}.")
+    lex.expect(TokenType.SQR_CL)
+    lex.expect(TokenType.SEMI)
+    return NArrDecl(ident, size_param)
 
 def parse_statement(lex: Lexer) -> Statement:
     if lex.next_is(TokenType.KW_LET):

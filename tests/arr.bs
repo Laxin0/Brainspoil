@@ -1,0 +1,13 @@
+arr a[10];
+
+let i = 9;
+while i{
+    a[i] = i;
+    i = i - 1;
+}
+i = 9;
+let sum = 0;
+while i{
+    sum = sum + a[i];
+    i = i - 1;
+}

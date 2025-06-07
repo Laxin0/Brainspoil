@@ -1,4 +1,4 @@
-tests\shadow_macro.bs:4:11: WARNING: Name shadowing. Name `a` used in an outer scope.
+tests\shadow_macro.bs:4:11: WARNING: Name shadowing. Name `a` used in an outer scope or used by macro.
 code:
 
 Execution:

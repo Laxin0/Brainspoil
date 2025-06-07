@@ -248,6 +248,11 @@ class NConstDecl(Statement):
     val: int
 
 @dataclass
+class NArrDecl(Statement):
+    id: Token
+    size: Token
+
+@dataclass
 class NAssign(Statement):
     lhs: Token | NIndex
     rhs: Expr
@@ -295,7 +300,6 @@ class VarData():
 @dataclass
 class ArrData():
     addr: int
-    size: int
 
 @dataclass
 class ConstData():

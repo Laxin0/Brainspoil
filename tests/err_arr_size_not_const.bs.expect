@@ -1,0 +1,1 @@
+tests\err_arr_size_not_const.bs:2:7: ERROR: `s` isn't a constant

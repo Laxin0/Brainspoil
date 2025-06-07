@@ -19,7 +19,7 @@ OPTIONS:
 def main():
     formatting = False
     print_ast = False
-    heap_cap = 32
+    
     input_file = None # "build/code.bs" #
     out_file =None #"build/out.bf"  # 
     args = argv[1:]
@@ -35,12 +35,6 @@ def main():
             formatting = True
         elif arg == '--ast':
             print_ast = True
-        elif arg.startswith("--heap="):
-            try:
-                heap_cap = int(arg[7:])
-            except:
-                print("Heap size must be an integer!")
-                exit(1)
         elif input_file == None:
             input_file = arg
         else:
@@ -63,7 +57,7 @@ def main():
     l = Lexer(src, input_file)
     ast = parse_prog(l)
     if print_ast: pprint(ast)
-    generated_code = gen_prog(ast, formatting=formatting, heap=heap_cap)
+    generated_code = gen_prog(ast, formatting=formatting)
     if out_file == None:
         print(generated_code)
     else:

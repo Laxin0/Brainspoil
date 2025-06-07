@@ -1,0 +1,19 @@
+macro fill(&array, size, val){
+    let i = 0;
+    while i < size{
+        array[i] = val;
+        i = i + 1;
+    }
+}
+
+macro print_arr(&array, size){
+    let i = 0;
+    while i < size{
+        print '0'+array[i]; " ";
+        i = i + 1;
+    }
+}
+
+arr array[4];
+fill(&a, 4, 4);
+print_arr(&array, 4);

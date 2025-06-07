@@ -15,7 +15,7 @@ def main():
     l = Lexer(src, file)
     ast = parse_prog(l)
     if len(sys.argv) > 2: pprint(ast)
-    code = gen_prog(ast,32,False)
+    code = gen_prog(ast, False)
     print("code:\n"+code)
     it = Intepr(code, 128, False)
     print("Execution:")
