@@ -220,6 +220,7 @@ def gen_declare(node: NDeclare):
     gened_expr: str
     if exp == None:
         gened_expr = ''
+        sp+=1
     else:
         gened_expr = gen_expr(exp)
     return gened_expr + store(addr, 1)
@@ -230,7 +231,7 @@ def gen_load(node: NIndex): # i -- val
     arr_addr = get_arr(node.arr_id)
     p = sp
     res =  gen_expr(node.index)
-    res += f"*{to(p)}>[-]>[-]<<" # zero 2 cells after p, the head at p
+    res += f"{to(p)}>[-]>[-]<<" # zero 2 cells after p, the head at p
     res += f"[-{to(p+1)}+{to(arr_addr-2)}+{to(p)}]" # copy p to p+1 and arr_addr-2 (first counter cell in arr), the head at p
     res += to(arr_addr-2)
     res += "[[-<<+>>]+<<-]+" # while counter > 0 move it one cell left, set curent pos to 1, decrement
