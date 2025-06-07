@@ -37,6 +37,10 @@ def get_var(id: Token) -> int:
 def define_macro(macro: NMacroDef):
     if macro.name.val in bfnames.keys() and isinstance(bfnames[macro.name.val], NMacroDef):
         error(f"{macro.name.loc}: ERROR: Redefinition of macro `{macro.name.val}`")
+    if macro.name.val in bfnames.keys():
+        error(f"{macro.name.loc}: ERROR: Name `{macro.name.val}` already used.")
+    if nesting > 0:
+        error(f"{macro.name.loc}: ERROR: Macro can't be defined inside any scope.")
     bfnames.update({macro.name.val: macro}) # TODO: i don't like that name still stores as token
     
 def to(addr):
@@ -194,7 +198,7 @@ def gen_declare(node: NDeclare):
     if name in bfnames.keys():
          error(f"{id.loc}: ERROR: Name `{id.val}` already used.") #TODO: by who or at least what type
 
-    if get_nesting(id.val) >= 0: print(f"{id.loc}: WARNING: Variable shadowing. Variable `{id.val}` declared in an outer scope.")
+    if get_nesting(id.val) >= 0: print(f"{id.loc}: WARNING: Name shadowing. Name `{id.val}` used in an outer scope.")
     addr = sp
     bfnames.update({name: VarData(addr)})
     
@@ -386,12 +390,16 @@ def gen_str(node: NStr):
     return res
 
 def gen_const_decl(node: NConstDecl):
+    global nesting
     assert isinstance(node, NConstDecl)
-    if node.id.val in bfnames.keys() and isinstance(bfnames[node.id.val], ConstData):
+    name = "."*nesting + node.id.val 
+    if name in bfnames.keys() and isinstance(bfnames[node.id.val], ConstData):
         error(f"{node.id.loc}: ERROR: Constant `{node.id.val}` already declared.")
-    if node.id.val in bfnames.keys() and not isinstance(bfnames[node.id.val], ConstData):
+    if name in bfnames.keys() and not isinstance(bfnames[node.id.val], ConstData):
         error(f"{node.id.loc}: ERROR: Name `{node.id.val}` already used.") #TODO: by who?
-    bfnames.update({node.id.val: ConstData(node.val)})
+    if get_nesting(node.id.val) >= 0: print(f"{node.id.loc}: WARNING: Name shadowing. Name `{node.id.val}` used in an outer scope.")
+
+    bfnames.update({name: ConstData(node.val)})
     return ""
 
 

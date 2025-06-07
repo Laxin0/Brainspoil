@@ -2,8 +2,8 @@ import subprocess
 from sys import argv
 from glob import glob
 
-PYTHON = "python"
-COMP = "fc"
+PYTHON = "python3"
+COMP = "cmp"
 TEST_FOLDER = "tests"
 
 test_files = ''
@@ -35,7 +35,7 @@ if __name__ == "__main__":
         print("Usage: python test.py rec | run")
         print("rec for record tests' output, run for compare output with expected)")
         exit(0)
-
+    
     test_files = glob(TEST_FOLDER+"/*.bs")
     if argv[1] == "rec":
         record()
