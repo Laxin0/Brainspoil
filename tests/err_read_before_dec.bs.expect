@@ -1,0 +1,1 @@
+tests\err_read_before_dec.bs:1:6: ERROR: Variable `foo` not declared.

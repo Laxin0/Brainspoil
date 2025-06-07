@@ -1,0 +1,1 @@
+tests\err_char_unclosed.bs:1:9: ERROR: Expected closing `'` in character constant, but found `e`

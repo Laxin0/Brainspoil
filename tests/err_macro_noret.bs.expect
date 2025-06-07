@@ -1,0 +1,1 @@
+tests\err_macro_noret.bs:2:9: ERROR: Macro `foo` does not return any value, but used in expression.

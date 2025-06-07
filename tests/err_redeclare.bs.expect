@@ -1,0 +1,1 @@
+tests\err_redeclare.bs:3:5: ERROR: Variable `a` already declared.

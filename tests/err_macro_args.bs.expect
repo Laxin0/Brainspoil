@@ -1,0 +1,1 @@
+tests\err_macro_args.bs:3:1: ERROR: Macro `foo` takes 1 arguments but got 2.

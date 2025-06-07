@@ -1,0 +1,1 @@
+tests\err_value_not_ref.bs:14:1: ERROR: 2th arg must be passed by value.

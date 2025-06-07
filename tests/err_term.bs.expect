@@ -1,0 +1,1 @@
+tests\err_term.bs:1:11: ERROR: Expected `;` but found `=`

@@ -1,0 +1,1 @@
+tests\err_ref_not_val.bs:14:1: ERROR: 1th arg must be passed by reference.

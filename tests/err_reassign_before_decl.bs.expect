@@ -1,0 +1,1 @@
+tests\err_reassign_before_decl.bs:1:1: ERROR: Variable `a` not declared.

@@ -1,0 +1,1 @@
+tests\err_empty_char.bs:1:9: ERROR: Expected closing `'` in character constant, but found `)`
