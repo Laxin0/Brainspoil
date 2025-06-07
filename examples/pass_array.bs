@@ -15,5 +15,5 @@ macro print_arr(&array, size){
 }
 
 arr array[4];
-fill(&a, 4, 4);
+fill(&array, 4, 4);
 print_arr(&array, 4);
