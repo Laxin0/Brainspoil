@@ -1,0 +1,1 @@
+tests\err_name_used_macro.bs:2:7: ERROR: Name `a` already used.

@@ -2,8 +2,8 @@ import subprocess
 from sys import argv
 from glob import glob
 
-PYTHON = "python3"
-COMP = "cmp"
+PYTHON = "python"
+COMP = "fc"
 TEST_FOLDER = "tests"
 
 test_files = ''

@@ -1,1 +1,1 @@
-tests\err_const_decl.bs:2:5: ERROR: Name `s` already used by constant.
+tests\err_const_decl.bs:2:5: ERROR: Name `s` already used.
