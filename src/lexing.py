@@ -312,9 +312,14 @@ def parse_const_decl(lex: Lexer) -> NConstDecl:
     lex.expect(TokenType.SEMI)
     return NConstDecl(ident, value)
 
+def parse_arr_decl(lex: Lexer):
+    raise NotImplementedError("array are not impplemented")
+
 def parse_statement(lex: Lexer) -> Statement:
     if lex.next_is(TokenType.KW_LET):
         return parse_declare(lex)
+    elif lex.next_is(TokenType.KW_ARR):
+        return parse_arr_decl(lex)
     elif lex.next_is(TokenType.KW_CONST):
         return parse_const_decl(lex)
     elif lex.next_is(TokenType.IDENT): # TODO: i don't like it

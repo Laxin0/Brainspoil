@@ -12,6 +12,7 @@ def iota():
     return (iota_count := iota_count + 1)
 
 class TokenType(Enum):
+    KW_ARR = iota()
     KW_LET = iota()
     KW_CONST = iota()
     KW_PRINT = iota()
@@ -100,6 +101,7 @@ binop_prec = { # < > <= >= 9
 }
 
 keywords = {
+    "arr": TokenType.KW_ARR,
     "let": TokenType.KW_LET,
     "print": TokenType.KW_PRINT,
     "read": TokenType.KW_READ,
@@ -137,6 +139,7 @@ puncts = {
 }
 
 tok_to_str = {
+    TokenType.KW_ARR: '`arr` keyword',
     TokenType.KW_LET: '`let` keyword',
     TokenType.KW_CONST: '`const` keyword',
     TokenType.KW_PRINT: '`print` keyword',
@@ -292,6 +295,7 @@ class VarData():
 @dataclass
 class ArrData():
     addr: int
+    size: int
 
 @dataclass
 class ConstData():
