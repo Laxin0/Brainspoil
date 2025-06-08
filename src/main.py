@@ -1,3 +1,4 @@
+#/usr/bin/python3
 from lexing import Lexer, parse_prog
 from generation import gen_prog
 from sys import argv

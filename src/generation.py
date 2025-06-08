@@ -443,7 +443,7 @@ def gen_arr_decl(node: NArrDecl):
     if size >= 256:
         error(f"{node.size.loc}: ERROR: Size of an array must be less then 256.")
 
-    actual_size = size*2+1
+    actual_size = size*2+1+2
     res = to(sp) + "[-]>"*actual_size
     sp += actual_size
     head += actual_size

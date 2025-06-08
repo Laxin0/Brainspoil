@@ -11,3 +11,5 @@ while i{
     sum = sum + a[i];
     i = i - 1;
 }
+
+"finished\n";

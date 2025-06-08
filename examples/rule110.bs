@@ -1,7 +1,7 @@
 # Rule 110
 
-const SIZE = 20;
-let iters = 20;
+const SIZE = 40;
+let iters = 37;
 
 arr field[SIZE];
 arr next[SIZE];
