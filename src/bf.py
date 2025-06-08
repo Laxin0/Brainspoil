@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from sys import argv
 from math import log10, ceil
 TAPE_W = 5
@@ -99,7 +101,7 @@ class Intepr():
 def usage():
     print ("""
 USAGE:
-    python bf.py <input.bf> [options]
+    bf <input.bf> [options]
 
 OPTIONS:
     -v                 Enable visual mode. (Read more about it in README.md)
@@ -135,7 +137,7 @@ if __name__ == "__main__":
         print("No input file was provided!")
         usage()
         exit(1)
-    
+        
     code = ""
     try:
         with open(input_file) as f:
@@ -143,7 +145,6 @@ if __name__ == "__main__":
     except:
         print(f"Can't open `{input_file}`.")
         exit(1)
-
     inter = Intepr(code, tape_len, visual)
     print(f"Running bf code (Visual mode: {visual})...")
     inter.run()

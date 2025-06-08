@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import subprocess
 from sys import argv
 from glob import glob

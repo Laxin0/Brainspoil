@@ -1,28 +1,25 @@
-#/usr/bin/python3
+#!/usr/bin/python3
+
 from lexing import Lexer, parse_prog
 from generation import gen_prog
 from sys import argv
-from pprint import pprint
 
 def usage():
     print("""
 USAGE:
-    python main.py <input.bs> [options]
+    bs <input.bs> [options]
           
 OPTIONS:
     -f            Enable formatting in generated code.
     -o <file>     Specify output file.
                   If output file not specified, code will be printed to stdout.
-    --heap=<int>  Specify heap size in elements (each element is 2 cells!).
-                  By default heap is 32 elements.
     """)
 
 def main():
     formatting = False
-    print_ast = False
     
-    input_file = None # "build/code.bs" #
-    out_file =None #"build/out.bf"  # 
+    input_file = None
+    out_file =None 
     args = argv[1:]
 
     while len(args) > 0:
@@ -34,8 +31,6 @@ def main():
             out_file = args.pop(0)
         elif arg == '-f':
             formatting = True
-        elif arg == '--ast':
-            print_ast = True
         elif input_file == None:
             input_file = arg
         else:
@@ -57,7 +52,6 @@ def main():
 
     l = Lexer(src, input_file)
     ast = parse_prog(l)
-    if print_ast: pprint(ast)
     generated_code = gen_prog(ast, formatting=formatting)
     if out_file == None:
         print(generated_code)
