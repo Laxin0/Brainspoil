@@ -1,7 +1,3 @@
-# DO NOT TOUCH THIS SHIT IS UNDER DEVELOPMENT!!!
-
-But if you want to try...
-
 # Disclaimer
 This is my project, which I do just for fun.
 I am not a professional and not even advanced programmer.
@@ -9,13 +5,8 @@ English is not my native language, so there may be many mistakes (I'm sorry).
 
 # About
 My own programming language that compiles into brainfuck.
-Its name *brainspoil* becouse if *brainfuck* made for fucking your brain, *brainspoil* is opposite. It should easier for your brain. Although it might be even worse.
-
-# Download
-You can just clone this repo:
-```
-git clone https://github.com/laxin0/Brainspoil
-```
+Its name *brainspoil* becouse if *brainfuck* made for fucking your brain, *brainspoil* is opposite.
+It should be easier for your brain. Although it might be even worse.
 
 ## Compilation
 To compile your program written in *brainspoil* you need `main.py` file.
@@ -28,12 +19,12 @@ OPTIONS:
     -f            Enable formatting in generated code.
     -o <file>     Specify output file.
                   If output file not specified, code will be printed to stdout.
-    --heap=<int>  Specify heap size in elements (each element is 2 cells!).
-                  By default heap is 32 elements.
 ```
 
 If you didn't set `-f` flag code will be in one line without any additional symbols.
-Heap size specified in elements becouse each element is 2 cells wide. It neded becouse there is no way to use the cell value as the number of steps. So you need always cary with you counter, which tell you where you are.
+Heap size specified in elements becouse each element is 2 cells wide.
+It neded becouse there is no way to use the cell value as the number of steps.
+So you need always cary with you counter, which tell you where you are.
 
 ## Execution
 
@@ -44,7 +35,7 @@ USAGE:
 
 OPTIONS:
     -v                 Enable visual mode. (Read more about it in README.md)
-    -d                 Dump tape after executing program.
+    -d                 Dump tape after executing program to stdout.
     --tape-len=<int>   Specify tape length. By default tape is 1024 cells.
 ```
 
@@ -55,26 +46,36 @@ Even though it's called visual mode, it's still just text.
 
 In visual mode you can see each step of the interpreter in the following form:
 ```
+004 005 006 007 008 009 010 011 012 013
 000 000 000 000 006 003 000 000 000 000
                      ^
 >>] [-]++++++++++ [-<+>] <<[-]>[-<+>][
                     ^
 ```
-At the top is the tape and a pointer to the current cell, at the bottom is the code and a pointer to the next command. To go to the next command, just press enter. 
+At the top is the tape and a pointer to the current cell and its address within the tape,
+at the bottom is the code and a pointer to the next command. To go to the next command, just press enter. 
 
 ## Breakpoints
-There are also breakpoints. To create a break point, just put `*` in brainfuck code where you want to stop. During execution, type `b` and press `enter`. The interpreter will continue execution until the next break point. You can exit visual mode by typing `e` and `enter`.
+There are also breakpoints. To create a break point, just put `*` in brainfuck code where you want to stop.
+During execution, type `b` and press `enter`. The interpreter will continue execution until the next break point.
+You can exit visual mode by typing `e` and `enter`.
 
 # Brainspoil lang
 ## Variables and types
 ```
-let a;  #Is is comment btw
+let a;  # Comment like in python
 let b = 42;
 b = 'h';
 ```
 Declare variables with `let` keyword.
 There is one single type: unsigned int from 0 to 255 (That's how bf works...)
 You can use char constant as number.
+
+## Constants
+```
+const C = 42;
+```
+Сonstants are not allocated on the stack, its value known at compile time
 
 ## Math and logic
 ```
@@ -83,7 +84,7 @@ let b = (a > 0) && !(0 <= 9);
 ```
 
 Suported operations:
-    math:      +, -, * (/ is not implemented yet)
+    math:      +, -, * (/ and % are not implemented yet)
     logic:     &&, ||, !
     comparing: >, >=, <, <=
 
@@ -93,23 +94,20 @@ Logic and comapring operation must return a boolean value, in brainspoil they re
 ```
 print 69;    # ascii code for 'E'
 print '0'+4;
+
 let input;
 read input;
+print input;
 ```
 
 `print` - prints character with corresponding ascii code
 `read`  - reads single character from stdin and stores its code in variable
 
-## Heap
+## Strings
+Just put string literal as statement for printing it:
 ```
-let ptr = 3;
-@ptr = 42;
-@(ptr+1) = 69;
-@0 = @1;
+"Hello world\n";
 ```
-
-You can store values at some address in heap, and use them.
-Variable, number or expression in brackets after `@` character is addres within the heap.
 
 ## Scopes
 ```
@@ -133,6 +131,8 @@ let a; # global name `a`
 print a; # uses `a`
 ```
 
+There is some problems with checking if name used and by who.
+But when I tested these things it worked (kinda)
 
 ## if else
 ```
@@ -159,20 +159,43 @@ while i{
 }
 ```
 
+It is more optimal to count backwards because comperasing is a heavy operation.
+
+## Arrays
+```
+const SIZE = 5;
+
+arr array1[10];
+arr array2[SIZE];
+```
+The size of the array is specified in the number of elements? but actual size in cells are 2*n+1+2
+The size of an array must be less then 256 and size must be known at compile time
+because of limitaion of brainfck and my brain.
+
+```
+arr array[10];
+array[0] = 4;
+let first = array[0];
+```
+
+Array using is a heavy operation.
+
+>[!bug]
+>If the index goes beyond the bounds of the array, undefined behavior will occur!
+
 ## macros
 Procedures can be written like this
 ```
 macro foo(a, b){
     if a > b{
-        print '>';
+        ">";
     }else{
-        print '<'; print '=";
+        "<=";
     }
-    print '\n';
+    "\n"
 }
 
 foo(2, 3)
-foo('a', 2+2);
 ```
 
 Functions can be written like this:
@@ -182,7 +205,6 @@ macro* add(a, b){
 }
 
 let a = add(3, 5);
-
 ```
 
 If you put `*` after `macro` you can use predefined variable `Result`.
@@ -196,26 +218,41 @@ foo(); # 42 was returned, but it stored on the stack and can never be used anymo
 {foo();} # If you need to do this, put in a scope
 ```
 
-## Experimental
-**Experimantal features that can be deprecated in future**
+## Passing by reference
+Macros can accept variables and array by reference.
+The symbol `&` must be present both in definition and in use.
 
-### strings
-Just put string literal as statement for printing it:
 ```
-"Hello world\n";
+macro mut(&a, b){
+    a = 4;
+    b = 4;
+}
+
+let a = 2; let b = 3;
+mut(&a, b); 
+# 'a' was mutated, 'b' stays the same. 
 ```
 
-**You can see more examples in `tests` folder**
+Arrays can be passed only by reference
+```
+macro print_last(&array, size){
+    print array[size-1];
+}
+```
+
+**You can see more examples in `exapmles` folder**
 
 ## How it works
-Tape layout
-```
-o_o_o_o_o_0.........
-```
-
-`o` - Zeros. Cells for copying index counter in it. Each step couner decremented and leave tail of 1, so when it becomes 0, needed value is stored.
-`0` - When head goes back it set zero in `o` cells until it encounters `0`. It means we are 'home' and we know where we are.
-`.` - Just cells within the stack.
-
 All variables are stores on the stack, all computations are done on the stack. Basically its just stack machine. 
 When you write `b = a+3*4` it  copies value of `a` onto the stack, then pushes 3 and 4, makes multiplication, then addition, then stores it to `b`.
+
+The most confusing part is arrays.
+Array layout:
+```
+_x_a_a_a_a_a0
+```
+Where
+`a`  - Actual values inside of the array
+`_`  - Zeros. Cells for copying index counter in it. Each step couner decremented and leave tail of 1, so when it becomes 0, needed value is stored one byte right.
+`0`  - When head goes back it erases tail of 1 in `_` cells until it encounters `0`. It means we are 'home' and we know where we are.
+`_x` - End section needed for copying last element when needed. (The value copyes into next left `_` cell and ontop of the stack and after moves back)
