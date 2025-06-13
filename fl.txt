@@ -1,0 +1,15 @@
+dos2unix examples/div_mod_printn.bs
+dos2unix examples/hello_world.bs
+dos2unix examples/pass_array.bs
+dos2unix examples/pass_by_ref.bs
+dos2unix examples/rule110.bs
+dos2unix src/bfc.py
+dos2unix src/bf.py
+dos2unix src/definitions.py
+dos2unix src/generation.py
+dos2unix src/lexing.py
+dos2unix src/log.py
+dos2unix src/main.py
+dos2unix notes.md
+dos2unix README.md
+dos2unix test.py
