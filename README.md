@@ -193,8 +193,7 @@ let first = array[0];
 
 Array using is a heavy operation.
 
->[!bug]
->If the index goes beyond the bounds of the array, undefined behavior will occur!
+**If the index goes beyond the bounds of the array, undefined behavior will occur!**
 
 ## macros
 Procedures can be written like this
