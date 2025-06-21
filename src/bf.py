@@ -94,14 +94,56 @@ class Intepr():
     code: str
     mem: bytearray
     memcap: int
-    visial: bool
 
-    def __init__(self, code, memcap=1024, visual=False):
+    def __init__(self, code, memcap=1024):
         self.code = code
         self.memcap = memcap
-        self.visual = visual
 
-    def run(self):
+    def run_optimize(self):
+        src = self.code.replace("[-]", '0')
+        src = "".join(filter((lambda x: x in '+-<>[],.0'), src))
+        ops = gen_ops(separate(src))
+
+        stack = []
+        for i in range(len(ops)):
+            if ops[i].type == '[':
+                stack.append(i)
+            elif ops[i].type == ']':
+                start = stack.pop()
+                ops[i].count = start
+                ops[start].count = i
+                
+        pc_stack = []
+
+        pc = 0
+        self.mem = bytearray(self.memcap)
+        self.head = 0
+        while pc < len(ops):
+            op = ops[pc]
+            match (op.type, op.count):
+                case '+', c:
+                    self.mem[self.head] = (self.mem[self.head] + c) % 256
+                case '-', c:
+                    self.mem[self.head] = (self.mem[self.head] - c) % 256
+                case '<', c:
+                    self.head -= c
+                case '>', c:
+                    self.head += c
+                case '[', c:
+                    if self.mem[self.head] == 0:
+                        pc = c
+                case ']', c:
+                    if self.mem[self.head] != 0:
+                        pc = c
+                case '.', _:
+                    print(chr(self.mem[self.head]), end='')
+                case ',', _:
+                    self.mem[self.head] = ord(input())
+                case '0', _:
+                    self.mem[self.head] = 0
+            pc += 1
+
+    def run_visual(self):
         pc = 0
         self.mem = bytearray(self.memcap)
         self.head = 0
@@ -145,7 +187,7 @@ class Intepr():
             
             pc += 1
 
-            if self.visual and breakp: #TODO: rewrite this 
+            if breakp: #TODO: rewrite this 
                 print(' '.join((str(i).rjust(3, '0')) for i in range(self.head-TAPE_W, self.head+TAPE_W)))
                 print(' '.join(((FILL_C*3) if i >= self.memcap or i < 0 else str(self.mem[i]).rjust(3, '0')) for i in range(self.head-TAPE_W, self.head+TAPE_W)))
                 print(' '*(4*TAPE_W) + ' ^')
@@ -155,8 +197,15 @@ class Intepr():
                 inp = input() #TODO: make more interactions {'a': 66, 'b': 67, 'foo.a': 68, 'foo.b': 69, 'foo.c': 70, 'foo.d': 71}
                 if inp == 'b':
                     breakp = False
-                elif inp == 'e':
-                    self.visual = False
+                elif inp == 'e' or inp == 'q':
+                    return
+
+    def run(self, visual: bool):
+        if visual:
+            self.run_visual()
+        else:
+            self.run_optimize()
+
 
 
     def dumpmem(self):
@@ -197,13 +246,13 @@ OPTIONS:
 """)
 
 def interpret(code, tape_len, visual, dump_mem):
-    inter = Intepr(code, tape_len, visual)
+    inter = Intepr(code, tape_len)
     print(f"Running bf code (Visual mode: {visual})...")
-    inter.run()
+    inter.run(visual)
     if dump_mem: inter.dumpmem()
 
 if __name__ == "__main__":
-    input_file = None
+    input_file = "build/out.bf"
     output_file = None
     compile_mode = False
     tape_len = 1024
@@ -243,10 +292,10 @@ if __name__ == "__main__":
         else:
             input_file = input_file or arg
 
-        if input_file == None:
-            print("No input file was provided!")
-            usage()
-            exit(1)
+    if input_file == None:
+        print("No input file was provided!")
+        usage()
+        exit(1)
         
     code = ""
     try:

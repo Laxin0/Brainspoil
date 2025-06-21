@@ -17,9 +17,9 @@ def main():
     if len(sys.argv) > 2: pprint(ast)
     code = gen_prog(ast, False)
     print("code:\n"+code)
-    it = Intepr(code, 128, False)
+    it = Intepr(code, 128)
     print("Execution:")
-    it.run()
+    it.run(False)
     print("\nMemory:")
     it.dumpmem()
 

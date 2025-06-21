@@ -1,5 +1,6 @@
 macro * div(a, b){ # a // b
-    while a > b{
+    Result = 0;
+    while a >= b{
         a = a - b;
         Result = Result + 1;
     }
@@ -21,8 +22,10 @@ macro print_n(n){
     print '\n';
 }
 
-let i = 0;
-while (255 - i) >= 0{
-    i = i+1;
+let i = 111;
+while i{
     print_n(i);
+    # print('0'+i); " ";
+    # print(mod(i, 10)+'0'); "\n";
+    i = i-1;
 }
