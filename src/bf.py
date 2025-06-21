@@ -252,7 +252,7 @@ def interpret(code, tape_len, visual, dump_mem):
     if dump_mem: inter.dumpmem()
 
 if __name__ == "__main__":
-    input_file = "build/out.bf"
+    input_file = None
     output_file = None
     compile_mode = False
     tape_len = 1024

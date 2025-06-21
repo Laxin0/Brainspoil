@@ -16,7 +16,6 @@ def get_arr(id: Token):
     assert isinstance(id, Token)
     nest = get_nesting(id.val)
     if nest < 0:
-        raise RuntimeError()
         error(f"{id.loc}: ERROR: Array `{id.val}` not declared.")
     if not isinstance(bfnames[nest*'.'+id.val], ArrData):
         error(f"{id.loc}: ERROR: `{id.val}` isn't an array.")
