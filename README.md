@@ -8,8 +8,8 @@ My own programming language that compiles into brainfuck.
 Its name *brainspoil* becouse if *brainfuck* made for fucking your brain, *brainspoil* is opposite.
 It should be easier for your brain. Although it might be even worse.
 
-## Compilation
-To compile your program written in *brainspoil* you need `main.py` file.
+## Brainspoil compilation
+To compile your program written in *brainspoil* to brainfck you need `bs`.
 
 ```
 USAGE:
@@ -21,27 +21,40 @@ OPTIONS:
                   If output file not specified, code will be printed to stdout.
 ```
 
-If you didn't set `-f` flag code will be in one line without any additional symbols.
-Heap size specified in elements becouse each element is 2 cells wide.
-It neded becouse there is no way to use the cell value as the number of steps.
-So you need always cary with you counter, which tell you where you are.
+If you didn't set `-f` flag code will be in one line without any additional symbols. (Experimental feature)
 
-## Execution
+## Brainfck 
 
-The project has its own brainfuck (bf) interpreter (`src/bf.py`), but you can use your own.
+The project has its own brainfck interpreter and compiler (`src/bf.py`), but you can use your own.
 ```
 USAGE:
-    python src/bf.py <input.bf> [options]
+    bf <input.bf> [options] 
 
 OPTIONS:
-    -v                 Enable visual mode. (Read more about it in README.md)
-    -d                 Dump tape after executing program to stdout.
-    --tape-len=<int>   Specify tape length. By default tape is 1024 cells.
+    -len=<int>    Specify tape length. By default tape is 1024 cells.
+    -v            Enable visual mode. (For intrpretation) (Read more about it in README.md)
+    -d            Dump tape after executing program. (For interpretation)
+    -c            Compile program to fasm assembly.
+    -o            Specify output file name. (For compilation)
+    -h            Print this message.
 ```
 
-You can run bf programms in visual mode.
+## Examples
+
+```
+./bs examples/hello_world.bs -o hello.bf
+./bf hello.bf
+```
+
+```
+./bs examples/rule110.bs -o rule.bf
+./bf rule.bf -c -o rule.s
+fasm rule.s
+./out
+```
 
 # Visual mode
+You can run bf programms in visual mode.
 Even though it's called visual mode, it's still just text.
 
 In visual mode you can see each step of the interpreter in the following form:
