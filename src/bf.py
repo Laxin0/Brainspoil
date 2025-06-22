@@ -114,7 +114,7 @@ class Intepr():
                 ops[start].count = i
                 
         pc_stack = []
-
+        input_buff = ''
         pc = 0
         self.mem = bytearray(self.memcap)
         self.head = 0
@@ -138,7 +138,10 @@ class Intepr():
                 case '.', _:
                     print(chr(self.mem[self.head]), end='')
                 case ',', _:
-                    self.mem[self.head] = ord(input())
+                    if input_buff == '':
+                        input_buff = input() or "\n"
+                    self.mem[self.head] = ord(input_buff[0])
+                    input_buff = input_buff[1:]
                 case '0', _:
                     self.mem[self.head] = 0
             pc += 1
