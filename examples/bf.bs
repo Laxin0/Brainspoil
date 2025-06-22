@@ -1,0 +1,75 @@
+const SRC_SIZE = 127;
+const TAPE_SIZE = 16;
+
+arr src[SRC_SIZE];
+arr tape[TAPE_SIZE];
+
+# Read input
+
+"Type bf program with q at the end\n";
+
+let i = 0;
+let buff;
+while (i < SRC_SIZE) && buff != 'q'{
+    read buff;
+    src[i] = buff;
+    i = i + 1;
+}
+
+"Program is running...\n";
+
+# Execute
+let head = 0;
+
+let c;
+i = 0;
+while (i < SRC_SIZE){
+    c = src[i];
+    if c == '+' {
+        tape[head] = tape[head] + 1;
+    }
+    if c == '-' {
+        tape[head] = tape[head] - 1;
+    }
+    if c == '>' {
+        head = head + 1;
+    }
+    if c == '<' {
+        head = head - 1;
+    }
+    if c == '[' {
+        if !tape[head]{
+            let stack = 1;
+            while stack{
+                i = i + 1;
+                c = src[i];
+                if c == '[' { stack = stack + 1; }
+                if c == ']' { stack = stack - 1; }
+                c = 0;
+            }
+        }
+    }
+    if c == ']' {
+        if tape[head]{
+            let stack = 1;
+            while stack{
+                i = i - 1;
+                c = src[i];
+                if c == '[' { stack = stack - 1; }
+                if c == ']' { stack = stack + 1; }
+                c = 0;
+            }
+        }
+    }
+    if c == ',' {
+        read buff;
+        tape[head] = buff;
+    }
+    if c == '.' {
+        print(tape[head]);
+    }
+
+    i = i + 1;
+}
+"\nFinished\n";
+

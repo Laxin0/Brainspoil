@@ -1,0 +1,62 @@
+macro * div(a, b){ # a // b
+    Result = 0;
+    while a >= b{
+        a = a - b;
+        Result = Result + 1;
+    }
+}
+
+macro * mod(a, b){
+    while a >= b{
+        a = a - b;
+    }
+    Result = a;
+}
+
+macro print_number(n){
+    print('0'+div(n, 100));
+    n = mod(n, 100);
+    print('0'+div(n,10));
+    n = mod(n, 10);
+    print('0'+n);
+}
+
+macro* input_number(){
+    let buf;
+    read buf;
+    Result = (buf - '0');
+    read buf;
+    Result = Result * 10 + (buf - '0');
+    read buf;
+    Result = Result * 10 + (buf - '0');
+}
+
+"Enter first number: ";
+let a = input_number();
+
+"Enter second number: ";
+let b = input_number();
+
+"Enter operation +-*/%: ";
+let op;
+read op;
+
+let res;
+if op == '+' {
+    res = a + b;
+}
+if op == '-' {
+    res = a - b;
+}
+if op == '*' {
+    res = a * b;
+}
+if op == '/' {
+    res = div(a, b);
+}
+if op == '%' {
+    res = mod(a, b);
+}
+
+print_number(a); print op; print_number(b); "="; print_number(res); "\n";
+
